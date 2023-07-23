@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from smbus2 import SMBus, i2c_msg
 from typing import Optional
 from time import sleep
@@ -5,7 +6,7 @@ from time import sleep
 global bus
 bus = SMBus(1)
 
-class i2c_pot:
+class i2cPot:
     def __init__(self) -> None:
         global bus
         self.bus = bus 
@@ -33,7 +34,7 @@ class i2c_pot:
         except KeyboardInterrupt:
             pass
 
-class i2c_adc:
+class i2cAdc:
     def __init__(self) -> None:
         global bus
         self.bus = bus 
@@ -88,7 +89,7 @@ if __name__ == "__main__":
     print("Adjusting PS back to minimum and disabling")
     pot.setPot(127)
     gpio.setPsEn(False)
-    gpio.setPwrEn(True)
+    gpio.setPwrEn(False)
 
 
 
