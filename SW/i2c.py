@@ -85,17 +85,6 @@ if __name__ == "__main__":
     sleep(.1)
     print("Current voltage:",round(adc.getVoltage(),2))    
 
-    pot.setPot(127)
-    sleep(.1)
-    print("Current voltage:",round(adc.getVoltage(),2))    
-    gpio.setPwrEn(True)
-    print("Press enter to enable output")
-    input()
-    gpio.setPwrEn(False)
-
-    print("Press enter to shutdown")
-    input()
-
     print("Adjusting PS back to minimum and disabling")
     pot.setPot(127)
     gpio.setPsEn(False)
