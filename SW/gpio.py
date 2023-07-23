@@ -10,7 +10,7 @@ class pi_gpio:
         self.pins["SIG_BUSY"]=(24,True,GPIO.OUT)
         self.pins["SIG_START"]=(21,True,GPIO.IN)
         self.pins["PS_EN"]=(19,False,GPIO.OUT)
-        self.pins["PWR_EN"]=(20,False,GPIO.OUT)
+        self.pins["PWR_EN"]=(20,True,GPIO.OUT)
 
         for name in self.pins:
             pin = self.pins[name]
@@ -40,6 +40,24 @@ class pi_gpio:
         if self.pins[pin] is not None:
             return self.pins[pin][2] == GPIO.OUT
         return False
+    
+    def setSigNG(self,value: bool) -> None:
+        self.setPin("SIG_NG",value)
+
+    def setSigOK(self,value: bool) -> None:
+        self.setPin("SIG_OK",value)
+
+    def setSigBusy(self,value: bool) -> None:
+        self.setPin("SIG_BUSY",value)
+
+    def getSigStart(self,value: bool) -> None:
+        return self.getPin("SIG_START",value)
+    
+    def setPsEn(self,value: bool) -> None:
+        self.setPin("PS_EN",value)
+
+    def setPwrEn(self,value: bool) -> None:
+        self.setPin("PWR_EN",value)
 
 
 if __name__ == "__main__":
