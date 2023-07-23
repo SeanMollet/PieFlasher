@@ -8,16 +8,57 @@ import os
 # Being able to easily view/edit/copy the JSON is more valuable
 
 
-if not os.path.isdir("data"):
+def testDir(path) -> bool:
+    if not os.path.isdir(path):
+        try:
+            os.mkdir(path)
+        except (FileNotFoundError, FileExistsError):
+            pass
+
+    if not os.path.isdir(path):    
+        return False
+    return True
+
+dataPath = "data"
+
+result = testDir(dataPath)
+if not result:
     print("No data directory found! Aborting.")
     sys.exit(1)
 
-dataPath = "data"
+confDir = os.path.join(dataPath,"config")
+result = testDir(confDir)
+if not result:
+    print("No config directory found! Aborting.")
+    sys.exit(1)
+
+logDir = os.path.join(dataPath,"logs")
+result = testDir(logDir)
+if not result:
+    print("No log directory found! Aborting.")
+    sys.exit(1)
+
+imageDir = os.path.join(dataPath,"images")
+result = testDir(imageDir)
+if not result:
+    print("No images directory found! Aborting.")
+    sys.exit(1)
+
+if not os.path.isdir(confDir):
+    try:
+        os.mkdir(confDir)
+    except (FileNotFoundError, FileExistsError):
+        pass
+
+if not os.path.isdir(confDir):
+    print("No config directory found! Aborting.")
+    sys.exit(1)
+
 def loadConfiguration(name):
-    if not os.path.isdir(self.dataPath):
+    if not os.path.isdir(dataPath):
         return None
     filename = name+".json"
-    filePath = os.path.join(self.dataPath,filename)
+    filePath = os.path.join(dataPath,filename)
     if not os.path.isfile(filePath):
         return None
     try:
@@ -25,7 +66,7 @@ def loadConfiguration(name):
             contents = f.read()
             obj = json.loads(contents)
             return obj
-    except KeyboardInterrupt:
+    except Exception:
         pass
     return None
     
@@ -39,6 +80,6 @@ def saveConfiguration(name,data) -> bool:
             contents = json.dumps(data)
             f.write(contents)
             return True
-    except KeyboardInterrupt:
+    except Exception:
         pass
     return False     
