@@ -12,9 +12,23 @@ From a freshly installed raspbian-lite
 ### Configure interfaces
 sudo raspi-config
 Go to Interfaces and enable I2C and SPI
+Use your favorite text editor to edit /boot/config.txt and add the following line at the end (in the [all] section)
+
+```
+dtparam=i2c_arm=on,i2c_arm_baudrate=400000
+```
 
 ### Install necessary tools
-sudo apt install git python3-pip i2c-tools
+PieFlasher pre-requisites
+```
+sudo apt install git python3-pip i2c-tools 
+```
+
+Luma pre-requisites
+```
+sudo apt install python3-dev libfreetype6-dev libjpeg-dev build-essential
+sudo apt install libsdl-dev libportmidi-dev libsdl-ttf2.0-dev libsdl-mixer1.2-dev libsdl-image1.2-dev
+```
 
 ### Check the adapter
 Run i2cdetect -y 1
@@ -36,6 +50,7 @@ If all is working correctly, you'll see:
 
 ```
 git clone https://github.com/flashrom/flashrom
+cd flashrom
 git checkout v.1.3.0
 
 make -j 4
