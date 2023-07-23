@@ -36,7 +36,7 @@ def calibrate():
         avg = round(avg/5,2)
         print(i,avg,tests[0][i],tests[1][i],tests[2][i],tests[3][i],tests[4][i])
 
-# 
+# Verify our voltage settings
 def checkPS():
     gpio.setPsEn(True)
     gpio.setPwrEn(False)
@@ -57,6 +57,7 @@ def checkPS():
 
     gpio.setPsEn(False)
 
+# Set the pot for a specific voltage
 def setVoltage(target) -> bool:
         potValue = getPotForVoltage(target)
         pot.setPot(potValue)
