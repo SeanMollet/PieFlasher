@@ -8,6 +8,7 @@ gpio = pi_gpio()
 adc = i2cAdc()
 pot = i2cPot()
 
+voltageAccuracyThreshold = 0.05
 
 
 def getPotForVoltage(target):
@@ -48,12 +49,26 @@ def checkPS():
         pot.setPot(potValue)
         sleep(.1)
         voltage = round(adc.getVoltage(),2)
-        print("Target:",target,"Act:",voltage)
+        print("Target:",target,"Act:",voltage,end="")
+        if target * (1-voltageAccuracyThreshold) <= voltage <= target * (1+voltageAccuracyThreshold):
+            print(" OK")
+        else:
+            print(" Failed")
 
     gpio.setPsEn(False)
 
+def setVoltage(target) -> bool:
+        potValue = getPotForVoltage(target)
+        pot.setPot(potValue)
+        sleep(.05)
+        voltage = round(adc.getVoltage(),2)
+        if target * (1-voltageAccuracyThreshold) <= voltage <= target * (1+voltageAccuracyThreshold):
+            return True
+        print("Voltage inaccurate! Check calibration. Target:",target,"Actual:",voltage)
+        return False 
+
 if __name__ == "__main__":
     print("Please remove any chips and press Enter to test power supply accuracy")
-    print("DON'T DO THIS WITH A CHIP ATTACHED! Press CTRL+C to Cancel")
+    print("DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel")
     input()
     checkPS()
