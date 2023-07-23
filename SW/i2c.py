@@ -2,6 +2,9 @@
 from smbus2 import SMBus, i2c_msg
 from typing import Optional
 from time import sleep
+from threading import Thread, Lock
+
+mutex = Lock()
 
 global bus
 bus = SMBus(1)
@@ -17,22 +20,24 @@ class i2cPot:
         print("Current pot value:",str(int(result))+"/127")
     
     def getPot(self) -> Optional[int]:
-        try:
-            result = self.bus.read_byte(self.addr)
-            return int(result)
-        except KeyboardInterrupt:
-            pass
-        return None
+        with mutex:
+            try:
+                result = self.bus.read_byte(self.addr)
+                return int(result)
+            except KeyboardInterrupt:
+                pass
+            return None
     def setPot(self,value) -> None:
-        try:
-            if value <0:
-                value =0
-            if value > 127:
-                value = 127
+        with mutex:
+            try:
+                if value <0:
+                    value =0
+                if value > 127:
+                    value = 127
 
-            self.bus.write_byte(self.addr,value)
-        except KeyboardInterrupt:
-            pass
+                self.bus.write_byte(self.addr,value)
+            except KeyboardInterrupt:
+                pass
 
 class i2cAdc:
     def __init__(self) -> None:
@@ -47,17 +52,18 @@ class i2cAdc:
             print("Voltage reading:",validate)
     
     def getVoltage(self) -> Optional[float]:
-        try:
-            query = i2c_msg.read(self.addr,2)
-            self.bus.i2c_rdwr(query)
-            result = list(query)
-            if len(result)==2:
-                value = (int(result[0] & 0x0f) << 6) | (int(result[1] & 0xFC) >> 2)
-                value = float(value) / 1023 * 5
-                return value
-        except KeyboardInterrupt:
-            pass
-        return None
+        with mutex:
+            try:
+                query = i2c_msg.read(self.addr,2)
+                self.bus.i2c_rdwr(query)
+                result = list(query)
+                if len(result)==2:
+                    value = (int(result[0] & 0x0f) << 6) | (int(result[1] & 0xFC) >> 2)
+                    value = float(value) / 1023 * 5
+                    return value
+            except KeyboardInterrupt:
+                pass
+            return None
 
 if __name__ == "__main__":
     print("Initializing i2c adc")
