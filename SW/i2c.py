@@ -72,30 +72,6 @@ if __name__ == "__main__":
     print("Initializing i2c pot")
     pot = i2cPot()
 
-    from gpio import pi_gpio
-    gpio = pi_gpio()
-
-    print("Enabling power supply")
-    gpio.setPsEn(True)
-    sleep(.1)
-
-    print("Current voltage:",round(adc.getVoltage(),2))
-
-    print("Adjusting PS to minimum")
-    pot.setPot(127)
-    sleep(.1)
-
-    print("Current voltage:",round(adc.getVoltage(),2))
-
-    print("Adjusting PS to maximum")
-    pot.setPot(0)
-    sleep(.1)
-    print("Current voltage:",round(adc.getVoltage(),2))    
-
-    print("Adjusting PS back to minimum and disabling")
-    pot.setPot(127)
-    gpio.setPsEn(False)
-    gpio.setPwrEn(False)
 
 
 
