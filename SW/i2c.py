@@ -24,10 +24,11 @@ class i2cPot:
             try:
                 result = self.bus.read_byte(self.addr)
                 return int(result)
-            except KeyboardInterrupt:
+            except Exception:
                 pass
             return None
-    def setPot(self,value) -> None:
+        
+    def setPot(self,value) -> bool:
         with mutex:
             try:
                 if value <0:
@@ -36,8 +37,10 @@ class i2cPot:
                     value = 127
 
                 self.bus.write_byte(self.addr,value)
-            except KeyboardInterrupt:
+                return True
+            except Exception:
                 pass
+        return False
 
 class i2cAdc:
     def __init__(self) -> None:
@@ -61,7 +64,7 @@ class i2cAdc:
                     value = (int(result[0] & 0x0f) << 6) | (int(result[1] & 0xFC) >> 2)
                     value = float(value) / 1023 * 5
                     return value
-            except KeyboardInterrupt:
+            except Exception:
                 pass
             return None
 

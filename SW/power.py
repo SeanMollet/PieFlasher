@@ -11,6 +11,9 @@ pot = i2cPot()
 voltageAccuracyThreshold = 0.05
 
 
+def maxPwrControlVoltage():
+    return 3.4
+
 def getPotForVoltage(target):
     FirstUsefulValue = 45
     Slope = 0.045977678
@@ -58,15 +61,39 @@ def checkPS():
     gpio.setPsEn(False)
 
 # Set the pot for a specific voltage
-def setVoltage(target) -> bool:
+def setVoltage(target: float, validate: bool=True, output: bool=False) -> bool:
+        # Set the voltage to minimum and disable output before we turn it on
+        if validate and target <= maxPwrControlVoltage():
+            result = pot.setPot(127)
+            gpio.setPwrEn(False)
+            gpio.setPsEn(True)
+            sleep(.05)
+
         potValue = getPotForVoltage(target)
-        pot.setPot(potValue)
+        result = pot.setPot(potValue)
+        if not result:
+            return False
         sleep(.05)
-        voltage = round(adc.getVoltage(),2)
-        if target * (1-voltageAccuracyThreshold) <= voltage <= target * (1+voltageAccuracyThreshold):
-            return True
-        print("Voltage inaccurate! Check calibration. Target:",target,"Actual:",voltage)
-        return False 
+        if validate and target <= maxPwrControlVoltage():
+            voltage = round(adc.getVoltage(),2)
+            if output:
+                print("Voltage:",voltage)
+            if target * (1-voltageAccuracyThreshold) <= voltage <= target * (1+voltageAccuracyThreshold):
+                return True
+            print("Voltage inaccurate! Check calibration. Target:",target,"Actual:",voltage)
+            return False 
+        return True
+
+def disablePower():
+    gpio.setPwrEn(False)
+    gpio.setPsEn(False)
+    
+
+def enablePower():
+    gpio.setPsEn(True)
+    sleep(.05) # Make sure the supply is stable
+    gpio.setPwrEn(True)
+
 
 if __name__ == "__main__":
     print("Please remove any chips and press Enter to test power supply accuracy")
