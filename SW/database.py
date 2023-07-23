@@ -55,10 +55,10 @@ if not os.path.isdir(confDir):
     sys.exit(1)
 
 def loadConfiguration(name):
-    if not os.path.isdir(dataPath):
+    if not os.path.isdir(confDir):
         return None
     filename = name+".json"
-    filePath = os.path.join(dataPath,filename)
+    filePath = os.path.join(confDir,filename)
     if not os.path.isfile(filePath):
         return None
     try:
@@ -71,10 +71,10 @@ def loadConfiguration(name):
     return None
     
 def saveConfiguration(name,data) -> bool:
-    if not os.path.isdir(dataPath):
+    if not os.path.isdir(confDir):
         return False
     filename = name+".json"
-    filePath = os.path.join(dataPath,filename)
+    filePath = os.path.join(confDir,filename)
     try:
         with open(filePath,"w") as f:
             contents = json.dumps(data)
