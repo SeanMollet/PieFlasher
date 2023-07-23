@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import RPi.GPIO as GPIO
 
 class pi_gpio:
@@ -57,7 +58,7 @@ class pi_gpio:
         self.setPin("PS_EN",value)
 
     def setPwrEn(self,value: bool) -> None:
-        self.setPin("PWR_EN",value)
+        self.setPin("PWR_EN",not value)
 
 
 if __name__ == "__main__":
