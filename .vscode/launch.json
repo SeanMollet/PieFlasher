@@ -11,6 +11,19 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: manualFlash.py",
+            "type": "python",
+            "request": "launch",
+            "program": "manualFlash.py",
+            "args": [
+                "~/testImage.img",
+                "3.3"
+            ],
+            "cwd": "${workspaceFolder}/SW",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }
