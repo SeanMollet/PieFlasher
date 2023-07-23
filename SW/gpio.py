@@ -14,7 +14,7 @@ class pi_gpio:
 
         for name in self.pins:
             pin = self.pins[name]
-            print("Setting up",name,"GPIO:",pin[0],"default:",pin[1])
+            #print("Setting up",name,"GPIO:",pin[0],"default:",pin[1])
             if pin[2] == GPIO.OUT:
                 GPIO.setup(pin[0],GPIO.OUT)
                 GPIO.output(pin[0],pin[1])
