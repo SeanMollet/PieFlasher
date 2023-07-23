@@ -67,10 +67,10 @@ class i2cAdc:
 
 if __name__ == "__main__":
     print("Initializing i2c adc")
-    adc = i2c_adc()
+    adc = i2cAdc()
 
     print("Initializing i2c pot")
-    pot = i2c_pot()
+    pot = i2cPot()
 
     from gpio import pi_gpio
     gpio = pi_gpio()
