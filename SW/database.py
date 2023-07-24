@@ -1,13 +1,17 @@
 import json
 import sys
 import os
+import threading
 from datetime import datetime
+from time import sleep
 
 # Why JSON?
 # We could put this stuff in an actual db, SQLlite, MySQL, etc..
 # But, there's really no need since it's an embedded tool.
 # Being able to easily view/edit/copy the JSON is more valuable
 
+logComplete = False
+logThread = None
 
 def testDir(path) -> bool:
     if not os.path.isdir(path):
@@ -87,4 +91,53 @@ def saveConfiguration(name,data) -> bool:
 
 def getLogFileName() -> str:
     filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] +".log"
-    return os.path.join(logDir,filename)
+    logFilePath = os.path.join(logDir,filename)
+    logComplete = False
+    printLogFileData(logFilePath)
+    return logFilePath
+
+def loggingComplete():
+    global logComplete
+    logComplete = True
+    if logThread is not None:
+        logThread.join()
+
+def followFile(thefile) -> str:
+     global logComplete
+     while True:
+        line = thefile.readline()
+        if not line or not line.endswith('\n'):
+            if logComplete:
+                yield None
+            sleep(0.1)
+            continue
+        yield line
+
+def logReader(logFile: str) -> None:
+    # Wait for the file to be created
+    print("Waiting for log file",logFile)
+    limit = 10*300
+    checks=0
+    while checks < limit:
+        if os.path.isfile(logFile):
+            break
+        checks +=1
+        sleep(.1)
+
+    if checks >= limit:
+        print("Timed out waiting for logfile")
+        return
+    
+    print("Found log file, opening")
+    with open(logFile,"r") as logfile:
+        loglines = followFile(logfile)
+        for line in loglines:
+            # Follow sends us a None when we're done
+            if line is None:
+                return
+            print(line, end='')
+
+def printLogFileData(logFile: str) -> None:
+    logThread = threading.Thread(target=logReader, args=[logFile])
+    logThread.start()
+                              

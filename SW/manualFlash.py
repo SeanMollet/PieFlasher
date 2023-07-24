@@ -4,7 +4,7 @@ import os
 from utils import isfloat
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
 from flash import flashImage
-from database import getLogFileName
+from database import getLogFileName,loggingComplete
 
 if len(sys.argv) < 3:
     print("Usage: manualFlash.py <Filename> <Voltage>")
@@ -37,9 +37,6 @@ if voltage < maxPwrControlVoltage():
         disablePower()
         sys.exit(1)
 
-
-
-
 logFile = getLogFileName()
 print("Flashing",source,"Logging to",logFile)
 print("Press enter to begin")
@@ -54,5 +51,6 @@ with open(source,"rb") as imageFile:
     else:
         print("Error flashing, check logfile")
 
+loggingComplete()
 disablePower()
 
