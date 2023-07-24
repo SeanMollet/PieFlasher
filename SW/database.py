@@ -139,13 +139,14 @@ def logReader(logFile: str) -> None:
 
     print("Found log file, opening")
     with open(logFile, "r") as logfile:
+        os.set_blocking(logfile.fileno(), False)
         loglines = followFile(logfile)
         for line in loglines:
             # Follow sends us a None when we're done
             if line is None:
                 return
             # print(line, end="")
-            print("Received:", len(line), "bytes")
+            print("Received:", len(line), "bytes:", line)
 
 
 def printLogFileData(logFile: str) -> None:
