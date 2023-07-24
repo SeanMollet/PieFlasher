@@ -57,40 +57,42 @@ def show_display(device):
         lockI2C(lambda: device.display(background.convert(device.mode)))
         return
 
-    with canvas(device) as draw:
-        if len(currentFile) == 0:
-            dispFile = "No File"
-        else:
-            dispFile = os.path.basename(currentFile)
-        draw.text((0, 0), dispFile, font=oledFont, fill="white")
+    background = Image.new("RGBA", device.size, "black")
+    draw = ImageDraw.Draw(background)
+    if len(currentFile) == 0:
+        dispFile = "No File"
+    else:
+        dispFile = os.path.basename(currentFile)
+    draw.text((0, 0), dispFile, font=oledFont, fill="white")
 
-        if device.height >= 64:
-            draw.text(
-                (0, 14),
-                str(round(adc.getVoltage(), 2))
-                + "V / "
-                + str(round(currentVoltageTarget, 2))
-                + "V",
-                font=oledFont,
-                fill="white",
-            )
-            status = ""
-            if currentState == State.IDLE:
-                status = "Idle"
-            elif currentState == State.LAUNCHING:
-                status = "Starting up"
-            elif currentState == State.ERASING:
-                status = "Erasing " + str(currentProgress) + "%"
-            elif currentState == State.FLASHING:
-                status = "Flashing " + str(currentProgress) + "%"
-            elif currentState == State.Error:
-                status = "Error"
+    draw.text(
+        (0, 14),
+        str(round(adc.getVoltage(), 2))
+        + "V / "
+        + str(round(currentVoltageTarget, 2))
+        + "V",
+        font=oledFont,
+        fill="white",
+    )
+    status = ""
+    if currentState == State.IDLE:
+        status = "Idle"
+    elif currentState == State.LAUNCHING:
+        status = "Starting up"
+    elif currentState == State.ERASING:
+        status = "Erasing " + str(currentProgress) + "%"
+    elif currentState == State.FLASHING:
+        status = "Flashing " + str(currentProgress) + "%"
+    elif currentState == State.Error:
+        status = "Error"
 
-            draw.text((0, 28), status, font=oledFont, fill="white")
-            draw.rectangle((0, 42, 127, 63), fill="black", outline="white")
+    draw.text((0, 28), status, font=oledFont, fill="white")
+    draw.rectangle((0, 42, 127, 63), fill="black", outline="white")
 
-            progressWidth = 127 * (currentProgress / 100)
-            draw.rectangle((0, 42, progressWidth, 63), fill="white", outline="white")
+    progressWidth = 127 * (currentProgress / 100)
+    draw.rectangle((0, 42, progressWidth, 63), fill="white", outline="white")
+
+    lockI2C(lambda: device.display(background.convert(device.mode)))
 
 
 def main():
