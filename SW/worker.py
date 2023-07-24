@@ -31,10 +31,14 @@ currentState = State.STARTUP
 currentProgress = 0
 currentFile = ""
 currentVoltageTarget = 0.0
+fileScrollPos = 0
+fileScrollBack = False
 
 
 def show_display(device):
-    global currentState, currentProgress, currentFile, currentVoltageTarget, oledFont
+    global currentState, currentProgress, currentFile, currentVoltageTarget, oledFont, fileScrollPos, fileScrollBack
+
+    background = Image.new("RGBA", device.size, "black")
 
     if currentState == State.STARTUP:
         pieImagePath = str(
@@ -42,7 +46,6 @@ def show_display(device):
         )
 
         pieImage = Image.open(pieImagePath).convert("RGBA")
-        background = Image.new("RGBA", device.size, "black")
 
         scale = device.height / pieImage.size[1] * 0.8
         newSize = (int(pieImage.size[0] * scale), int(device.height * 0.8))
@@ -57,13 +60,36 @@ def show_display(device):
         lockI2C(lambda: device.display(background.convert(device.mode)))
         return
 
-    background = Image.new("RGBA", device.size, "black")
     draw = ImageDraw.Draw(background)
     if len(currentFile) == 0:
         dispFile = "No File"
     else:
         dispFile = os.path.basename(currentFile)
-    draw.text((0, 0), dispFile, font=oledFont, fill="white")
+
+    draw.text((0 - fileScrollPos, 0), dispFile, font=oledFont, fill="white")
+
+    # Get the size of the text and adjust scroll for the next pass if we need to
+    fileWidth = draw.textlength(dispFile, oledFont)
+    if fileWidth > device.width:
+        overage = fileWidth - device.width
+        if fileScrollPos >= overage:
+            fileScrollBack = True
+        if fileScrollPos <= 0:
+            fileScrollBack = False
+        if fileScrollBack:
+            # Pause at the end
+            if fileScrollPos > (overage - 0.5):
+                fileScrollPos -= 0.1
+            else:
+                fileScrollPos -= 4
+        else:
+            # Pause at the start
+            if fileScrollPos < 1:
+                fileScrollPos += 0.1
+            else:
+                fileScrollPos += 4
+    else:
+        fileScrollPos = 0
 
     draw.text(
         (0, 14),
@@ -87,10 +113,10 @@ def show_display(device):
         status = "Error"
 
     draw.text((0, 28), status, font=oledFont, fill="white")
-    draw.rectangle((0, 42, 127, 63), fill="black", outline="white")
+    draw.rectangle((0, 44, 127, 63), fill="black", outline="white")
 
     progressWidth = 127 * (currentProgress / 100)
-    draw.rectangle((0, 42, progressWidth, 63), fill="white", outline="white")
+    draw.rectangle((0, 44, progressWidth, 63), fill="white", outline="white")
 
     lockI2C(lambda: device.display(background.convert(device.mode)))
 

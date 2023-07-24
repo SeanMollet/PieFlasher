@@ -13,12 +13,12 @@
             "justMyCode": true
         },
         {
-            "name": "Python: manualFlash.py",
+            "name": "Python: worker.py",
             "type": "python",
             "request": "launch",
-            "program": "manualFlash.py",
+            "program": "worker.py",
             "args": [
-                "~/testImage.img",
+                "~/testimage.img",
                 "3.3"
             ],
             "cwd": "${workspaceFolder}/SW",
