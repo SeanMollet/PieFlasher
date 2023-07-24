@@ -52,8 +52,8 @@ class pi_gpio:
     def setSigBusy(self, value: bool) -> None:
         self.setPin("SIG_BUSY", value)
 
-    def getSigStart(self, value: bool) -> None:
-        return self.getPin("SIG_START", value)
+    def getSigStart(self) -> None:
+        return self.getPin("SIG_START")
 
     def setPsEn(self, value: bool) -> None:
         self.setPin("PS_EN", value)
