@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
-import os
+import sys
 import time
-import re
 from pathlib import Path
+from luma.core.interface.serial import i2c
 from luma.core.render import canvas
-from luma.core import cmdline, error
-from PIL import ImageFont
+from luma.oled.device import ssd1306
+from PIL import ImageFont, Image, ImageDraw
+from enum import Enum
+
+
+class State(Enum):
+    STARTUP = 0
+    IDLE = 1
+    ERASING = 2
+    FLASHING = 3
+    ERROR = 4
+
+
+currentState = State.STARTUP
+currentProgress = 0
+currentFile = ""
+currentVoltage = 0.0
+currentVoltageTarget = 0.0
 
 
 def show_display(device):
@@ -13,49 +29,54 @@ def show_display(device):
     font_path = str(Path(__file__).resolve().parent.joinpath("fonts", "FreePixel.ttf"))
     font2 = ImageFont.truetype(font_path, 16)
 
+    if currentState == State.STARTUP:
+        img_path = str(
+            Path(__file__).resolve().parent.joinpath("images", "PieSlice.png")
+        )
+        spritemap = Image.open(img_path).convert("RGBA")
+        background = Image.new("RGBA", device.size, "black")
+
+        scale = device.height / spritemap.size[1] * 0.8
+        newSize = (int(spritemap.size[0] * scale), int(device.height))
+        img = spritemap.resize(newSize)
+        background.paste(img, (0, 0))
+
+        draw = ImageDraw.Draw(background)
+        draw.text((48, 0), "PieFlasher", font=font2, fill="white")
+
+        device.display(background.convert(device.mode))
+
+        return
+
     with canvas(device) as draw:
         draw.text((0, 0), "PieFlasher", font=font2, fill="white")
-        draw.text((0, 14), "File:", font=font2, fill="white")
+        if len(currentFile) == 0:
+            dispFile = "No File"
+        else:
+            dispFile = currentFile
+        draw.text((0, 14), dispFile, font=font2, fill="white")
 
         if device.height >= 64:
-            draw.text((0, 28), "Voltage", font=font2, fill="white")
-            draw.text((0, 42), "Status", font=font2, fill="white")
+            draw.text(
+                (0, 28),
+                str(round(currentVoltage, 2))
+                + "V / "
+                + str(round(currentVoltageTarget, 2))
+                + "V",
+                font=font2,
+                fill="white",
+            )
+            status = ""
+            if currentState == State.IDLE:
+                status = "Idle"
+            elif currentState == State.ERASING:
+                status = "Erasing"
+            elif currentState == State.FLASHING:
+                status = "Flashing"
+            elif currentState == State.Error:
+                status = "Error"
 
-
-def display_settings(device, args):
-    """
-    Display a short summary of the settings.
-
-    :rtype: str
-    """
-    iface = ""
-    display_types = cmdline.get_display_types()
-    if args.display not in display_types["emulator"]:
-        iface = f"Interface: {args.interface}\n"
-
-    lib_name = cmdline.get_library_for_display_type(args.display)
-    if lib_name is not None:
-        lib_version = cmdline.get_library_version(lib_name)
-    else:
-        lib_name = lib_version = "unknown"
-
-    import luma.core
-
-    version = f"luma.{lib_name} {lib_version} (luma.core {luma.core.__version__})"
-
-    return f'Version: {version}\nDisplay: {args.display}\n{iface}Dimensions: {device.width} x {device.height}\n{"-" * 60}'
-
-
-def get_device():
-    parser = cmdline.create_parser(description="luma.examples arguments")
-    args = parser.parse_args([])
-    try:
-        device = cmdline.create_device(args)
-        print(display_settings(device, args))
-        return device
-
-    except error.Error as e:
-        return None
+            draw.text((0, 42), status, font=font2, fill="white")
 
 
 def main():
@@ -66,7 +87,8 @@ def main():
 
 if __name__ == "__main__":
     try:
-        device = get_device()
+        serial = i2c(port=1, address=0x3C)
+        device = ssd1306(serial)
         main()
     except KeyboardInterrupt:
         pass

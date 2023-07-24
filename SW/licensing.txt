@@ -1,0 +1,18 @@
+Items pulled from other websites are noted here with their licenses. If you
+own one of these assets and object to us using it in an open source project,
+please let us know.
+
+Pie slice image:
+Downloaded 07/24/23
+https://clipart-library.com/clipart/8TzyRoXTp.htm
+
+As best I can tell their only restriction is no commercial use. That fits
+with what we're doing.
+
+FreePixel.ttf font:
+Downloaded 7/24/23
+https://github.com/rm-hull/luma.examples/blob/master/examples/fonts/FreePixel.ttf
+
+Taken from luma examples fonts folder. I can't find the origin of this font,
+but considering that luma is another open source project that uses, I
+believe no-body objects.
