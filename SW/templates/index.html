@@ -68,6 +68,10 @@
                 socket.emit('disconnect_request');
                 return false;
             });
+            $('form#shutdown').submit(function (event) {
+                socket.emit('shutdown_request');
+                return false;
+            });
         });
     </script>
 </head>
@@ -87,6 +91,9 @@
     </form>
     <form id="disconnect" method="POST" action="#">
         <input type="submit" value="Disconnect">
+    </form>
+    <form id="shutdown" method="POST" action="#">
+        <input type="submit" value="Shutdown">
     </form>
     <h2>Receive:</h2>
     <div id="log"></div>
