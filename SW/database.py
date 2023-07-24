@@ -3,6 +3,8 @@ import sys
 import os
 import threading
 import select
+import re
+from typing import Callable
 from datetime import datetime
 from time import sleep
 
@@ -95,11 +97,11 @@ def saveConfiguration(name, data) -> bool:
     return False
 
 
-def getLogFileName() -> str:
+def getLogFileName(updateFunc: Callable) -> str:
     filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
     logFilePath = os.path.join(logDir, filename)
     logComplete = False
-    printLogFileData(logFilePath)
+    printLogFileData(logFilePath, updateFunc)
     return logFilePath
 
 
@@ -122,9 +124,10 @@ def followFile(thefile) -> str:
         yield line
 
 
-def logReader(logFile: str) -> None:
+def logReader(logFile: str, updateFunc: Callable) -> None:
+    parser = re.compile("0x[0-9a-f]*-(0x[0-9a-f]*):([EW])")
     # Wait for the file to be created
-    print("Waiting for log file", logFile)
+    # print("Waiting for log file", logFile)
     limit = 10 * 300
     checks = 0
     while checks < limit:
@@ -137,7 +140,7 @@ def logReader(logFile: str) -> None:
         print("Timed out waiting for logfile")
         return
 
-    print("Found log file, opening")
+    # print("Found log file, opening")
     with open(logFile, "r") as logfile:
         os.set_blocking(logfile.fileno(), False)
         loglines = followFile(logfile)
@@ -145,10 +148,19 @@ def logReader(logFile: str) -> None:
             # Follow sends us a None when we're done
             if line is None:
                 return
+            values = parser.findall(line)
+            if len(values) > 0:
+                if updateFunc is not None:
+                    val = values[len(values) - 1]
+                    pos = int(val[0].replace("0x", ""), 16)
+                    mode = "Write"
+                    if val[1] == "E":
+                        mode = "Erase"
+                    updateFunc(pos, mode)
             # print(line, end="")
-            print("Received:", len(line), "bytes:", line)
+            # print("Received:", len(line), "bytes:", line)
 
 
-def printLogFileData(logFile: str) -> None:
-    logThread = threading.Thread(target=logReader, args=[logFile])
+def printLogFileData(logFile: str, updateFunc: Callable) -> None:
+    logThread = threading.Thread(target=logReader, args=[logFile, updateFunc])
     logThread.start()

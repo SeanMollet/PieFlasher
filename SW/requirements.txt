@@ -3,3 +3,4 @@ RPi.GPIO==0.7.1
 smbus2==0.4.2
 Flask==2.3.2
 Flask-SocketIO==5.3.4
+progressbar2==4.2.0
