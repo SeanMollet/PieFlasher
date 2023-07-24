@@ -24,6 +24,16 @@
             "cwd": "${workspaceFolder}/SW",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: server.py",
+            "type": "python",
+            "request": "launch",
+            "program": "server.py",
+            "args": [],
+            "cwd": "${workspaceFolder}/SW",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

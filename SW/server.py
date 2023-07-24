@@ -13,34 +13,13 @@ def index():
 
 
 @socketio.event
-def my_event(message):
-    session["receive_count"] = session.get("receive_count", 0) + 1
-    emit("my_response", {"data": message["data"], "count": session["receive_count"]})
-
-
-@socketio.event
-def my_broadcast_event(message):
-    session["receive_count"] = session.get("receive_count", 0) + 1
-    emit(
-        "my_response",
-        {"data": message["data"], "count": session["receive_count"]},
-        broadcast=True,
-    )
-
-
-@socketio.on("my event")
-def test_message(message):
-    emit("my response", {"data": message["data"]})
-
-
-@socketio.on("my broadcast event")
-def test_message(message):
-    emit("my response", {"data": message["data"]}, broadcast=True)
+def newFileSelected(fileData):
+    emit("newFile", fileData, broadcast=True)
 
 
 @socketio.on("connect")
 def test_connect():
-    emit("my response", {"data": "Connected"})
+    emit("ConnectedResponse", {"data": "Connected"})
 
 
 @socketio.on("disconnect")
