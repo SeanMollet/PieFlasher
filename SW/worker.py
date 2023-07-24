@@ -2,8 +2,13 @@
 import time
 import sys
 import os
+import progressbar
+import threading
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
+from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
+from flash import flashImage, scanChip
+from database import getLogFileName, loggingComplete
 from utils import isfloat
 from pathlib import Path
 from luma.core.interface.serial import i2c
@@ -30,6 +35,7 @@ gpio = pi_gpio()
 currentState = State.STARTUP
 currentProgress = 0
 currentFile = ""
+currentEraseMode = False
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
@@ -132,16 +138,94 @@ def main():
 
         curStartValue = gpio.getSigStart()
         if curStartValue == False and prevStartValue == True:
-            if currentState == State.LAUNCHING:
-                currentState = State.FLASHING
-                currentProgress = 50
-            else:
+            if currentState == State.IDLE:
                 currentState = State.LAUNCHING
+                flashThread = threading.Thread(target=processFlash)
+                flashThread.start()
+
         prevStartValue = curStartValue
 
         show_display(device)
 
         time.sleep(0.2)
+
+
+def logdata(logFile, *args):
+    with open(logFile, "a") as f:
+        data = "".join(map(str, args))
+        f.write(data)
+
+
+def processFlash():
+    global currentState, currentProgress, currentFile, currentVoltageTarget, currentEraseMode
+    fileSize = os.path.getsize(currentFile)
+
+    widgets = [
+        progressbar.Bar("*"),
+        " (",
+        progressbar.AdaptiveTransferSpeed(),
+        " ",
+        progressbar.AdaptiveETA(),
+        ") ",
+    ]
+    bar = progressbar.ProgressBar(
+        prefix="{variables.task}",
+        variables={"task": "--"},
+        max_value=fileSize,
+        widgets=widgets,
+    )
+
+    def updateStatus(pos, mode):
+        global currentProgress
+        bar.update(pos, task=mode)
+        currentProgress = int((pos / fileSize) * 100)
+
+    logFile = getLogFileName(updateStatus)
+    print("Logging to:", logFile)
+
+    # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
+    # Can't go closed loop, but that's not really an issue with a 5V chip
+    logdata(logFile, "Setting voltage to:" + str(currentVoltageTarget))
+    if currentVoltageTarget < maxPwrControlVoltage():
+        result = setVoltage(currentVoltageTarget, True, False)
+        if not result:
+            logdata(logFile, "Unable to set requested voltage. Aborting.")
+            disablePower()
+            currentState = State.ERROR
+            return
+
+    currentProgress = 0
+
+    bar.start()
+
+    enablePower()
+
+    if currentEraseMode:
+        logdata(logFile, "Erasing chip")
+        currentState = State.ERASING
+        chip, size = scanChip(logFile)
+        fileSize = size * 1024
+    else:
+        logdata(logFile, "Flashing", currentFile)
+        currentState = State.FLASHING
+
+    result = None
+    if currentEraseMode:
+        result = flashImage(None, logFile, True, chip, size)
+    else:
+        with open(currentFile, "rb") as imageFile:
+            data = imageFile.read()
+            result = flashImage(data, logFile, False)
+    if result:
+        logdata(logFile, "Success")
+    else:
+        logdata(logFile, "Error performing operation, check logfile")
+
+    loggingComplete()
+    disablePower()
+
+    bar.finish()
+    currentState = State.IDLE
 
 
 if __name__ == "__main__":

@@ -54,7 +54,7 @@ class i2cAdc:
 
         validate = self.getVoltage()
         if validate is not None:
-            print("Voltage reading:", validate)
+            print("Voltage reading:", round(validate, 2))
 
     def getVoltage(self) -> Optional[float]:
         with mutex:

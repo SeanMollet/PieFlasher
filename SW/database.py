@@ -125,7 +125,7 @@ def followFile(thefile) -> str:
 
 
 def logReader(logFile: str, updateFunc: Callable) -> None:
-    parser = re.compile("0x[0-9a-f]*-(0x[0-9a-f]*):([EW])")
+    parser = re.compile("0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
     # Wait for the file to be created
     # print("Waiting for log file", logFile)
     limit = 10 * 300
