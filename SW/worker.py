@@ -30,19 +30,21 @@ def show_display(device):
     font2 = ImageFont.truetype(font_path, 16)
 
     if currentState == State.STARTUP:
-        img_path = str(
+        pieImagePath = str(
             Path(__file__).resolve().parent.joinpath("images", "PieSlice.png")
         )
-        spritemap = Image.open(img_path).convert("RGBA")
+
+        pieImage = Image.open(pieImagePath).convert("RGBA")
         background = Image.new("RGBA", device.size, "black")
 
-        scale = device.height / spritemap.size[1] * 0.8
-        newSize = (int(spritemap.size[0] * scale), int(device.height))
-        img = spritemap.resize(newSize)
-        background.paste(img, (0, 0))
+        scale = device.height / pieImage.size[1] * 0.8
+        newSize = (int(pieImage.size[0] * scale), int(device.height * 0.8))
+        img = pieImage.resize(newSize)
+        background.paste(img, (0, 10))
 
         draw = ImageDraw.Draw(background)
         draw.text((48, 0), "PieFlasher", font=font2, fill="white")
+        draw.text((92, 14), "v0.1", font=font2, fill="white")
 
         device.display(background.convert(device.mode))
 
