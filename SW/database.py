@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+from datetime import datetime
 
 # Why JSON?
 # We could put this stuff in an actual db, SQLlite, MySQL, etc..
@@ -83,3 +84,7 @@ def saveConfiguration(name,data) -> bool:
     except Exception:
         pass
     return False     
+
+def getLogFileName() -> str:
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] +".log"
+    return os.path.join(logDir,filename)
