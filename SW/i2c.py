@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from smbus2 import SMBus, i2c_msg
-from typing import Optional
+from typing import Optional, Callable
 from time import sleep
 from threading import Thread, Lock
 
@@ -69,6 +69,13 @@ class i2cAdc:
             except Exception:
                 pass
             return None
+
+
+# Provides a way to call a lambda while locking on the i2c mutex
+# Handy for calling the display function from outside of here
+def lockI2C(callFunc: Callable):
+    with mutex:
+        callFunc()
 
 
 if __name__ == "__main__":
