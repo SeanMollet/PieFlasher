@@ -2,6 +2,7 @@ import json
 import sys
 import os
 import threading
+import select
 from datetime import datetime
 from time import sleep
 
@@ -112,7 +113,7 @@ def loggingComplete():
 def followFile(thefile) -> str:
     global logComplete
     while True:
-        line = thefile.read()
+        line = thefile.read(100)
         if not line:
             if logComplete:
                 yield None
@@ -143,7 +144,8 @@ def logReader(logFile: str) -> None:
             # Follow sends us a None when we're done
             if line is None:
                 return
-            print(line, end="")
+            # print(line, end="")
+            print("Received:", len(line), "bytes")
 
 
 def printLogFileData(logFile: str) -> None:
