@@ -17,10 +17,7 @@
             "type": "python",
             "request": "launch",
             "program": "worker.py",
-            "args": [
-                "~/testimage.img",
-                "3.3"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}/SW",
             "console": "integratedTerminal",
             "justMyCode": true

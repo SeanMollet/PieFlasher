@@ -18,7 +18,7 @@ class i2cPot:
         self.addr = 0x2F
         # Check if it's alive
         result = self.bus.read_byte(self.addr)
-        print("Current pot value:", str(int(result)) + "/127")
+        print("[ PWRSPLY] Current pot value:", str(int(result)) + "/127")
 
     def getPot(self) -> Optional[int]:
         with mutex:
@@ -54,7 +54,7 @@ class i2cAdc:
 
         validate = self.getVoltage()
         if validate is not None:
-            print("Voltage reading:", round(validate, 2))
+            print("[     ADC] Voltage reading:", round(validate, 2))
 
     def getVoltage(self) -> Optional[float]:
         with mutex:

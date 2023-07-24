@@ -4,6 +4,7 @@ import sys
 import os
 import progressbar
 import threading
+import worker_client
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
@@ -43,6 +44,15 @@ currentEraseMode = False
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
+
+
+def updateCurrentFile(fileName, voltage):
+    global currentFile, currentVoltageTarget
+    currentFile = fileName
+    currentVoltageTarget = voltage
+
+
+worker_client.setFileUpdate(updateCurrentFile)
 
 
 def show_display(device):
@@ -159,8 +169,9 @@ def main():
 
 
 def logdata(logFile, *args):
+    data = "".join(map(str, args)) + "\n"
+    worker_client.sendLogData(logFile, data)
     with open(logFile, "a") as f:
-        data = "".join(map(str, args))
         f.write(data)
 
 
@@ -240,9 +251,13 @@ def processFlash():
     if currentEraseMode:
         result = flashImage(None, logFile, True, chip, size)
     else:
-        with open(currentFile, "rb") as imageFile:
-            data = imageFile.read()
-            result = flashImage(data, logFile, False)
+        if not os.path.isfile(currentFile):
+            logdata(logFile,"File "+currentFile+" not found. Aborting flash.")
+            result = False
+        else:    
+            with open(currentFile, "rb") as imageFile:
+                data = imageFile.read()
+                result = flashImage(data, logFile, False)
     if result:
         logdata(logFile, "Success")
     else:
