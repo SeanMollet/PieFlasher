@@ -17,15 +17,19 @@ from luma.oled.device import ssd1306
 from PIL import ImageFont, Image, ImageDraw
 from enum import Enum
 
-
-class State(Enum):
-    STARTUP = 0
-    IDLE = 1
-    LAUNCHING = 2
-    ERASING = 3
-    FLASHING = 4
-    ERROR = 5
-
+State = Enum(
+    "State",
+    [
+        "STARTUP",
+        "IDLE",
+        "LAUNCHING",
+        "READING",
+        "ERASING",
+        "FLASHING",
+        "VERIFYING",
+        "ERROR",
+    ],
+)
 
 oledFontPath = str(Path(__file__).resolve().parent.joinpath("fonts", "FreePixel.ttf"))
 oledFont = ImageFont.truetype(oledFontPath, 16)
@@ -111,10 +115,14 @@ def show_display(device):
         status = "Idle"
     elif currentState == State.LAUNCHING:
         status = "Starting up"
+    elif currentState == State.READING:
+        status = "Reading"
     elif currentState == State.ERASING:
         status = "Erasing " + str(currentProgress) + "%"
     elif currentState == State.FLASHING:
         status = "Flashing " + str(currentProgress) + "%"
+    elif currentState == State.VERIFYING:
+        status = "Verifying"
     elif currentState == State.Error:
         status = "Error"
 
@@ -158,7 +166,10 @@ def logdata(logFile, *args):
 
 def processFlash():
     global currentState, currentProgress, currentFile, currentVoltageTarget, currentEraseMode
-    fileSize = os.path.getsize(currentFile)
+
+    fileSize = 0
+    if os.path.isfile(currentFile):
+        fileSize = os.path.getsize(currentFile)
 
     widgets = [
         progressbar.Bar("*"),
@@ -176,8 +187,25 @@ def processFlash():
     )
 
     def updateStatus(pos, mode):
-        global currentProgress
-        bar.update(pos, task=mode)
+        global currentProgress, currentState
+        task = "Idle"
+        if mode == "R":
+            currentState = State.READING
+            task = "Reading"
+        elif mode == "W":
+            currentState = State.FLASHING
+            task = "Flashing"
+        elif mode == "V":
+            currentState = State.VERIFYING
+            task = "Verifying"
+        elif mode == "E":
+            currentState = State.ERASING
+            task = "Erasing"
+        elif mode == "D":
+            currentState = State.IDLE
+            task = "Done"
+
+        bar.update(pos, task=task)
         currentProgress = int((pos / fileSize) * 100)
 
     logFile = getLogFileName(updateStatus)
@@ -201,13 +229,12 @@ def processFlash():
     enablePower()
 
     if currentEraseMode:
-        logdata(logFile, "Erasing chip")
-        currentState = State.ERASING
+        logdata(logFile, "Launching erase command")
         chip, size = scanChip(logFile)
         fileSize = size * 1024
+        bar.max_value = fileSize
     else:
-        logdata(logFile, "Flashing", currentFile)
-        currentState = State.FLASHING
+        logdata(logFile, "Launching flash command for:", currentFile)
 
     result = None
     if currentEraseMode:
@@ -230,7 +257,10 @@ def processFlash():
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        currentFile = sys.argv[1]
+        if sys.argv[1] == "erase":
+            currentEraseMode = True
+        else:
+            currentFile = sys.argv[1]
 
     if len(sys.argv) > 2 and isfloat(sys.argv[2]):
         currentVoltageTarget = float(sys.argv[2])

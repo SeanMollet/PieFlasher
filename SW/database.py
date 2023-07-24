@@ -125,7 +125,10 @@ def followFile(thefile) -> str:
 
 
 def logReader(logFile: str, updateFunc: Callable) -> None:
-    parser = re.compile("0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
+    readParser = re.compile(r"Reading old flash chip contents")
+    verifyParser = re.compile(r"Verifying flash")
+    doneParser = re.compile(r"Erase/write done")
+    posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
     # Wait for the file to be created
     # print("Waiting for log file", logFile)
     limit = 10 * 300
@@ -147,15 +150,36 @@ def logReader(logFile: str, updateFunc: Callable) -> None:
         for line in loglines:
             # Follow sends us a None when we're done
             if line is None:
+                # print("Got an empty line.")
                 return
-            values = parser.findall(line)
+            # Done
+            values = doneParser.findall(line)
+            if values:
+                # print("Found a done.")
+                updateFunc(100, "D")
+                return
+            # Reading
+            values = readParser.findall(line)
+            if values:
+                # print("Found a read:" + line)
+                updateFunc(0, "R")
+                continue
+            # Verifying
+            values = verifyParser.findall(line)
+            if values:
+                # print("Found a verify:" + line)
+                updateFunc(0, "V")
+                continue
+
+            # Flashing or Erasing + address
+            values = posParser.findall(line)
             if len(values) > 0:
                 if updateFunc is not None:
                     val = values[len(values) - 1]
                     pos = int(val[0].replace("0x", ""), 16)
-                    mode = "Write"
+                    mode = "W"
                     if val[1] == "E":
-                        mode = "Erase"
+                        mode = "E"
                     updateFunc(pos, mode)
             # print(line, end="")
             # print("Received:", len(line), "bytes:", line)
