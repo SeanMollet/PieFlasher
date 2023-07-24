@@ -13,6 +13,7 @@ from time import sleep
 logComplete = False
 logThread = None
 
+
 def testDir(path) -> bool:
     if not os.path.isdir(path):
         try:
@@ -20,9 +21,10 @@ def testDir(path) -> bool:
         except (FileNotFoundError, FileExistsError):
             pass
 
-    if not os.path.isdir(path):    
+    if not os.path.isdir(path):
         return False
     return True
+
 
 dataPath = "data"
 
@@ -31,19 +33,19 @@ if not result:
     print("No data directory found! Aborting.")
     sys.exit(1)
 
-confDir = os.path.join(dataPath,"config")
+confDir = os.path.join(dataPath, "config")
 result = testDir(confDir)
 if not result:
     print("No config directory found! Aborting.")
     sys.exit(1)
 
-logDir = os.path.join(dataPath,"logs")
+logDir = os.path.join(dataPath, "logs")
 result = testDir(logDir)
 if not result:
     print("No log directory found! Aborting.")
     sys.exit(1)
 
-imageDir = os.path.join(dataPath,"images")
+imageDir = os.path.join(dataPath, "images")
 result = testDir(imageDir)
 if not result:
     print("No images directory found! Aborting.")
@@ -59,11 +61,12 @@ if not os.path.isdir(confDir):
     print("No config directory found! Aborting.")
     sys.exit(1)
 
+
 def loadConfiguration(name):
     if not os.path.isdir(confDir):
         return None
-    filename = name+".json"
-    filePath = os.path.join(confDir,filename)
+    filename = name + ".json"
+    filePath = os.path.join(confDir, filename)
     if not os.path.isfile(filePath):
         return None
     try:
@@ -74,27 +77,30 @@ def loadConfiguration(name):
     except Exception:
         pass
     return None
-    
-def saveConfiguration(name,data) -> bool:
+
+
+def saveConfiguration(name, data) -> bool:
     if not os.path.isdir(confDir):
         return False
-    filename = name+".json"
-    filePath = os.path.join(confDir,filename)
+    filename = name + ".json"
+    filePath = os.path.join(confDir, filename)
     try:
-        with open(filePath,"w") as f:
+        with open(filePath, "w") as f:
             contents = json.dumps(data)
             f.write(contents)
             return True
     except Exception:
         pass
-    return False     
+    return False
+
 
 def getLogFileName() -> str:
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] +".log"
-    logFilePath = os.path.join(logDir,filename)
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
+    logFilePath = os.path.join(logDir, filename)
     logComplete = False
     printLogFileData(logFilePath)
     return logFilePath
+
 
 def loggingComplete():
     global logComplete
@@ -102,42 +108,44 @@ def loggingComplete():
     if logThread is not None:
         logThread.join()
 
+
 def followFile(thefile) -> str:
-     global logComplete
-     while True:
-        line = thefile.readline()
-        if not line or not line.endswith('\n'):
+    global logComplete
+    while True:
+        line = thefile.read()
+        if not line:
             if logComplete:
                 yield None
             sleep(0.1)
             continue
         yield line
 
+
 def logReader(logFile: str) -> None:
     # Wait for the file to be created
-    print("Waiting for log file",logFile)
-    limit = 10*300
-    checks=0
+    print("Waiting for log file", logFile)
+    limit = 10 * 300
+    checks = 0
     while checks < limit:
         if os.path.isfile(logFile):
             break
-        checks +=1
-        sleep(.1)
+        checks += 1
+        sleep(0.1)
 
     if checks >= limit:
         print("Timed out waiting for logfile")
         return
-    
+
     print("Found log file, opening")
-    with open(logFile,"r") as logfile:
+    with open(logFile, "r") as logfile:
         loglines = followFile(logfile)
         for line in loglines:
             # Follow sends us a None when we're done
             if line is None:
                 return
-            print(line, end='')
+            print(line, end="")
+
 
 def printLogFileData(logFile: str) -> None:
     logThread = threading.Thread(target=logReader, args=[logFile])
     logThread.start()
-                              
