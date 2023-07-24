@@ -4,3 +4,5 @@ smbus2==0.4.2
 Flask==2.3.2
 Flask-SocketIO==5.3.4
 progressbar2==4.2.0
+simple-websocket==0.10.1
+python-socketio==5.8.0
