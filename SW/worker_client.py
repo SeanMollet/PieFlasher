@@ -38,14 +38,13 @@ def newFile(fileData):
 def serverConnected():
     print("[  SERVER] Server connected")
     # In case the server restarted, send it our most recent status
-    if sio.connected:
-        try:
-            sio.emit("register", hostName)
-            if latestStatus is not None:
-                sio.emit("loggingData", latestStatus)
-        except Exception as E:
-            print("BARF", E)
-            pass
+    try:
+        sio.emit("register", hostName)
+        if latestStatus is not None:
+            sio.emit("loggingData", latestStatus)
+    except Exception as E:
+        print("BARF", E)
+        pass
 
 
 @sio.on("shutdown")

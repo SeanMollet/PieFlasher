@@ -125,9 +125,9 @@ def show_display(device):
 
     draw.text(
         (0, 14),
-        str(round(currentVoltage, 2))
+        "{:0.2f}".format(currentVoltage)
         + "V / "
-        + str(round(currentVoltageTarget, 2))
+        + "{:0.2f}".format(currentVoltageTarget)
         + "V",
         font=oledFont,
         fill="white",
