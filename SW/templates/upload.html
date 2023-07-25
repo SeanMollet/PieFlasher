@@ -1,6 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<span class="PieFlasher">{{ result }}</span>
 <h1>{% block title %} Upload flasher file {% endblock %}</h1>
-
+<form action="/files/upload" enctype="multipart/form-data" method="post">
+    <table border="1">
+        <tr>
+            <td>File:</td>
+            <td><input type="file" id="file" name="file"></td>
+        </tr>
+        <tr>
+            <td>Voltage</td>
+            <td><input type="text" id="voltage" name="voltage" size="50" placeholder="3.3" value="3.3"></td>
+        </tr>
+        <tr>
+            <td>Description:</td>
+            <td><input type="text" id="desc" name="desc" size="50" placeholder="Description"></td>
+        </tr>
+        <tr>
+            <td>Save:</td>
+            <td><input type="submit" id="submit" name="submit" value="Upload"></td>
+        </tr>
+    </table>
+</form>
 {% endblock %}

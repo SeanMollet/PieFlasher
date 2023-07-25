@@ -6,6 +6,7 @@ from flask import (
     request,
     send_from_directory,
     send_file,
+    redirect,
 )
 from werkzeug.utils import secure_filename
 from flask_socketio import (
@@ -18,14 +19,16 @@ from flask_socketio import (
 )
 import os
 import time
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
-filesPath = "data/files"
-
+filesPath = Path("data", "files")
+if not os.path.isdir(filesPath):
+    filesPath.mkdir(parents=True)
 clients = {}
 
 
@@ -36,19 +39,22 @@ def websocket_test():
 
 @app.route("/")
 def index():
-    return render_template("status.html")
+    return status()
 
 
 @app.route("/status/")
 def status():
     global clients
     flashers = []
-    for client in clients:
+    keys = list(clients.keys())
+    keys.sort()
+    for client in keys:
         flasher = clients[client]
         if "Timestamp" in flasher:
-            flasher["LastSeen"] = (
-                str(int(time.time() - flasher["Timestamp"])) + " Seconds ago"
-            )
+            lastSeen = time.time() - flasher["Timestamp"]
+            if lastSeen > 60:
+                continue
+            flasher["LastSeen"] = str(int(lastSeen)) + " Seconds ago"
         if "Filename" in flasher and len(flasher["Filename"]) == 0:
             flasher["Filename"] = "No file"
 
@@ -90,12 +96,40 @@ def getFile(name):
 @app.route("/files/upload", methods=["POST"])
 def postFile():
     print("Attemped to upload a file")
-    f = request.files["file"]
-    filename = secure_filename(f.filename)
-    fullPath = os.path.join(filesPath, filename)
-    f.save(fullPath)
-    print("Saved file to:", fullPath)
-    return ""
+    if "file" not in request.files:
+        return render_template("upload.html", result="No file given!")
+    file = request.files["file"]
+    if file.filename == "":
+        return render_template("upload.html", result="Empty filename given!")
+    if not ("voltage" in request.form and "desc" in request.form):
+        print("")
+    filename = secure_filename(file.filename)
+    fileData = {
+        "filename": filename,
+        "voltage": request.form["voltage"],
+        "desc": request.form["desc"],
+    }
+
+    # Don't overwrite files, append a numeric suffix
+    file_suffix = 2
+    ori_filename = filename
+    while True:
+        fullPath = os.path.join(filesPath, filename)
+        if os.path.isfile(fullPath):
+            path = Path(ori_filename)
+            filename = path.stem + "(" + str(file_suffix) + ")" + path.suffix
+            file_suffix += 1
+        else:
+            break
+
+    file.save(fullPath)
+
+    fullDataPath = os.path.join(filesPath, filename + ".data.json")
+    with open(fullDataPath, "w") as dataFile:
+        dataFile.write(json.dumps(fileData, indent=4))
+
+    print("Saved file to:", fullPath, " data to:", fullDataPath)
+    return render_template("upload.html", result="Saved uploaded file: " + filename)
 
 
 @socketio.event
