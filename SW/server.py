@@ -41,7 +41,19 @@ def index():
 
 @app.route("/status/")
 def status():
-    return render_template("status.html")
+    global clients
+    flashers = []
+    for client in clients:
+        flasher = clients[client]
+        if "Timestamp" in flasher:
+            flasher["LastSeen"] = (
+                str(int(time.time() - flasher["Timestamp"])) + " Seconds ago"
+            )
+        if "Filename" in flasher and len(flasher["Filename"]) == 0:
+            flasher["Filename"] = "No file"
+
+        flashers.append(flasher)
+    return render_template("status.html", flashers=flashers)
 
 
 @app.route("/logs/")
@@ -93,20 +105,15 @@ def newFileSelected(fileData):
 
 @socketio.event
 def register(hostName):
-    global clients
     session["hostName"] = hostName
     updateClient(hostName)
-    print("Client", hostName, "connected")
-
-
-@socketio.on("connect")
-def test_connect():
-    emit("ConnectedResponse", None)
+    print("Client:", hostName, "registered")
 
 
 @socketio.on("disconnect")
 def test_disconnect():
-    print("Client disconnected")
+    hostname = session.get("hostName", "")
+    print("Client:", hostname, "disconnected")
 
 
 @socketio.on("shutdown_request")
@@ -152,7 +159,10 @@ def loggingData(data):
                 logFile.write(data["logData"])
         elif "Status" in data and len(hostname) > 0:
             # We don't keep status messages, just pass them along if there's a client listening
+            if "Hostname" in data:
+                session["hostName"] = data["Hostname"]
             print("Client:", hostname, "Status:", data)
+            updateClient(hostname, None, data)
             emit("loggingData", data, to=hostname + "Logging")
 
 
@@ -179,7 +189,7 @@ def updateClient(hostName: str, recentLogFile: str = "", recentStatus: dict = No
     else:
         clients[hostName]["IP"] = request.remote_addr
         clients[hostName]["Timestamp"] = time.time()
-    if len(recentLogFile) > 0:
+    if recentLogFile is not None and len(recentLogFile) > 0:
         clients[hostName]["RecentLog"] = recentLogFile
     if recentStatus is not None:
         clients[hostName]["RecentStatus"] = recentStatus

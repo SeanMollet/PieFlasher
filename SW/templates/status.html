@@ -5,6 +5,8 @@
 <table border="1">
     <tr>
         <th>Hostname</th>
+        <th>IP</th>
+        <th>LastSeen</th>
         <th>Status</th>
         <th>File</th>
         <th>Progress</th>
@@ -14,7 +16,28 @@
     {% for flasher in flashers %}
     <tr>
         <td>
-            {{ flasher}}
+            {{ flasher["Hostname"] }}
+        </td>
+        <td>
+            {{ flasher["IP"] }}
+        </td>
+        <td>
+            {{ flasher["LastSeen"] }}
+        </td>
+        <td>
+            {{ printExists(flasher["RecentStatus"]["Status"]) }}
+        </td>
+        <td>
+            {{ flasher["RecentStatus"]["Filename"] }}
+        </td>
+        <td>
+            {{ flasher["RecentStatus"]["Progress"] }}%
+        </td>
+        <td>
+            {{ flasher["RecentStatus"]["Voltage"] }}V
+        </td>
+        <td>
+            {{ flasher["RecentStatus"]["TargetVoltage"] }}V
         </td>
     </tr>
     {% endfor %}

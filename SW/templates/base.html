@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 
+{% macro printExists(variable) %}
+{% if variable is defined %}
+{{ variable }}
+{% endif %}
+{% endmacro %}
+
 <head>
     <meta charset="UTF-8">
     <title>{% block title %} {% endblock %} - PieFlasher</title>
