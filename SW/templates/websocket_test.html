@@ -72,6 +72,10 @@
                 socket.emit('shutdown_request');
                 return false;
             });
+            $('form#reboot').submit(function (event) {
+                socket.emit('reboot_request');
+                return false;
+            });
         });
     </script>
 </head>
@@ -94,6 +98,9 @@
     </form>
     <form id="shutdown" method="POST" action="#">
         <input type="submit" value="Shutdown">
+    </form>
+    <form id="reboot" method="POST" action="#">
+        <input type="submit" value="Reboot">
     </form>
     <h2>Receive:</h2>
     <div id="log"></div>

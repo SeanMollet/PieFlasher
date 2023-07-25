@@ -115,6 +115,12 @@ def shutdown_request():
     emit("shutdown", None, broadcast=True)
 
 
+@socketio.on("reboot_request")
+def reboot_request():
+    print("Reboot requested, rebooting clients")
+    emit("reboot", None, broadcast=True)
+
+
 @socketio.event
 def joinLogging(message):
     join_room(message["client"] + "Logging")
@@ -159,15 +165,6 @@ def my_ping():
     emit("my_pong")
 
 
-if __name__ == "__main__":
-    fileTempPath = TemporaryDirectory()
-    app.config["TEMPLATES_AUTO_RELOAD"] = True
-    app.config["UPLOAD_FOLDER"] = fileTempPath
-    # 256 MB should be more than enough
-    app.config["MAX_CONTENT_PATH"] = 256 * 1024 * 1024
-    socketio.run(app, host="0.0.0.0")
-
-
 def updateClient(hostName: str, recentLogFile: str = "", recentStatus: dict = None):
     global clients
     if len(hostName) == 0:
@@ -181,8 +178,17 @@ def updateClient(hostName: str, recentLogFile: str = "", recentStatus: dict = No
         }
     else:
         clients[hostName]["IP"] = request.remote_addr
-        clients[hostName["Timestamp"]] = time.time()
+        clients[hostName]["Timestamp"] = time.time()
     if len(recentLogFile) > 0:
         clients[hostName]["RecentLog"] = recentLogFile
     if recentStatus is not None:
         clients[hostName]["RecentStatus"] = recentStatus
+
+
+if __name__ == "__main__":
+    fileTempPath = TemporaryDirectory()
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.config["UPLOAD_FOLDER"] = fileTempPath
+    # 256 MB should be more than enough
+    app.config["MAX_CONTENT_PATH"] = 256 * 1024 * 1024
+    socketio.run(app, host="0.0.0.0")

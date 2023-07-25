@@ -5,12 +5,17 @@
 <table border="1">
     <tr>
         <th>Hostname</th>
-        <th>File</th>
         <th>Status</th>
-        < </tr>
-            {% for flasher in flashers %}
+        <th>File</th>
+        <th>Progress</th>
+        <th>Voltage</th>
+        <th>Target Voltage</th>
+    </tr>
+    {% for flasher in flashers %}
     <tr>
-
+        <td>
+            {{ flasher}}
+        </td>
     </tr>
     {% endfor %}
 </table>

@@ -9,13 +9,22 @@ Download the latest version of raspbian-lite and flash to an SD card.
 
 From a freshly installed raspbian-lite
 
-### Configure interfaces
+### Configure hostname interfaces
 sudo raspi-config
-Go to Interfaces and enable I2C and SPI
-Use your favorite text editor to edit /boot/config.txt and add the following line at the end (in the [all] section)
+Go to system and then hostname and change the hostname. This name will show up in the flash interface, so make it unique for each device.
+Then to go interface options and enable I2C
+Use your favorite text editor to edit /boot/config.txt and add the following lines at the end (in the [all] section)
 
 ```
+dtparam=spi=on
 dtparam=i2c_arm=on,i2c_arm_baudrate=400000
+
+```
+
+Reboot the pi 
+
+```
+sudo reboot
 ```
 
 ### Install necessary tools
