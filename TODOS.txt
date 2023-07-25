@@ -1,0 +1,13 @@
+Create setup_client and setup_setup shell scripts
+
+client:
+Download and install pre-requisites
+
+server:
+create a venv and install necessary pip packages into it
+
+
+startup scripts
+
+systemd files for auto-start
+

@@ -1,8 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{% block title %} Index {% endblock %}</h1>
-<h1>Hello World!</h1>
-<h2>Welcome to FlaskApp!</h2>
-<h3>{{ utc_dt }}</h3>
+<h1>{% block title %} Flasher Status {% endblock %}</h1>
+<table border="1">
+    <tr>
+        <th>Hostname</th>
+        <th>File</th>
+        <th>Status</th>
+        < </tr>
+            {% for flasher in flashers %}
+    <tr>
+
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

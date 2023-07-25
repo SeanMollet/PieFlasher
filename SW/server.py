@@ -8,8 +8,16 @@ from flask import (
     send_file,
 )
 from werkzeug.utils import secure_filename
-from flask_socketio import SocketIO, emit
+from flask_socketio import (
+    SocketIO,
+    emit,
+    join_room,
+    leave_room,
+    close_room,
+    rooms,
+)
 import os
+import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -17,6 +25,8 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 filesPath = "data/files"
+
+clients = {}
 
 
 @app.route("/websocket_test.html")
@@ -83,7 +93,9 @@ def newFileSelected(fileData):
 
 @socketio.event
 def register(hostName):
+    global clients
     session["hostName"] = hostName
+    updateClient(hostName)
     print("Client", hostName, "connected")
 
 
@@ -103,24 +115,47 @@ def shutdown_request():
     emit("shutdown", None, broadcast=True)
 
 
+@socketio.event
+def joinLogging(message):
+    join_room(message["client"] + "Logging")
+
+
+@socketio.event
+def leaveLogging(message):
+    leave_room(message["client"] + "Logging")
+
+
 @socketio.on("loggingData")
 def loggingData(data):
-    if data is not None and "logFile" in data and "logData" in data:
+    if data is not None:
         hostname = session.get("hostName", "")
-        print(hostname, "logged to", data["logFile"], data["logData"])
-        if len(hostname) > 0:
-            path = Path("data/logs", hostname)
+        if "logFile" in data and "logData" in data:
+            print(hostname, "logged to", data["logFile"], data["logData"])
+            if len(hostname) > 0:
+                # Update client data and send it to the WS room if anyone is listening
+                updateClient(hostname, data["logFile"])
+                emit("loggingData", data, to=hostname + "Logging")
+            else:
+                hostname = "Unknown"
+            # Save it
+            path = Path("data", "logs", hostname)
             if not os.path.isdir(path):
                 path.mkdir(parents=True)
             logPath = os.path.join(path, data["logFile"])
-        else:
-            logPath = os.path.join("data/logs", data["logFile"])
-        with open(logPath, "a") as logFile:
-            logFile.write(data["logData"])
+            with open(logPath, "a") as logFile:
+                logFile.write(data["logData"])
+        elif "Status" in data and len(hostname) > 0:
+            # We don't keep status messages, just pass them along if there's a client listening
+            print("Client:", hostname, "Status:", data)
+            emit("loggingData", data, to=hostname + "Logging")
 
 
 @socketio.event
 def my_ping():
+    # Update their records since they pinged again
+    hostName = session.get("hostName", "")
+    if len(hostName) > 0:
+        updateClient(hostName)
     emit("my_pong")
 
 
@@ -131,3 +166,23 @@ if __name__ == "__main__":
     # 256 MB should be more than enough
     app.config["MAX_CONTENT_PATH"] = 256 * 1024 * 1024
     socketio.run(app, host="0.0.0.0")
+
+
+def updateClient(hostName: str, recentLogFile: str = "", recentStatus: dict = None):
+    global clients
+    if len(hostName) == 0:
+        return
+
+    if hostName not in clients:
+        clients[hostName] = {
+            "IP": request.remote_addr,
+            "Hostname": hostName,
+            "Timestamp": time.time(),
+        }
+    else:
+        clients[hostName]["IP"] = request.remote_addr
+        clients[hostName["Timestamp"]] = time.time()
+    if len(recentLogFile) > 0:
+        clients[hostName]["RecentLog"] = recentLogFile
+    if recentStatus is not None:
+        clients[hostName]["RecentStatus"] = recentStatus
