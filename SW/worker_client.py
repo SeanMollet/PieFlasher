@@ -8,7 +8,7 @@ from utils import isfloat
 
 
 latestStatus = None
-
+hostName = "Flasher_A"
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
 
@@ -36,7 +36,11 @@ def serverConnected():
     print("[  SERVER] Server connected")
     # In case the server restarted, send it our most recent status
     if latestStatus is not None:
-        sio.emit("loggingData", latestStatus)
+        if sio.connected:
+            try:
+                sio.emit("loggingData", latestStatus)
+            except Exception:
+                pass
 
 
 @sio.on("shutdown")
@@ -78,10 +82,11 @@ def sendLogData(logFile, logData):
 def sendStatus(
     status: str, filename: str, progress: float, voltage: float, targetVoltage: float
 ):
-    global latestStatus
+    global latestStatus, hostName
     # This either worked or it didn't, if it didn't, we don't care
     try:
         latestStatus = {
+            "Hostname": hostName,
             "Status": status,
             "Filename": filename,
             "Progress": progress,
@@ -98,6 +103,6 @@ pingThreadContinue = True
 pingThread = threading.Thread(target=sendPeriodicPing)
 pingThread.start()
 
-sio.emit("register", "Flasher_A")
+sio.emit("register", hostName)
 
 fileUpdateFunction = None
