@@ -134,10 +134,15 @@ def send_image(path):
     return send_from_directory("images", path)
 
 
-@app.route("/files/<name>")
+@app.route("/loadFile/<name>")
 def getFile(name):
     print("Attempting to download file:", name)
-    return "Here's the file!"
+    # We do this when saving, so this shouldn't have any ill effects
+    name = secure_filename(name)
+    fullPath = Path(filesPath, name)
+    if os.path.isfile(fullPath):
+        return send_file(fullPath)
+    return "What are you doing? Users aren't supposed to be here."
 
 
 @app.route("/files/upload", methods=["POST"])
@@ -159,7 +164,7 @@ def postFile():
         fullPath = os.path.join(filesPath, filename)
         if os.path.isfile(fullPath):
             path = Path(ori_filename)
-            filename = path.stem + "(" + str(file_suffix) + ")" + path.suffix
+            filename = path.stem + "-" + str(file_suffix) + path.suffix
             file_suffix += 1
         else:
             break
