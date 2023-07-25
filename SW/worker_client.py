@@ -64,6 +64,12 @@ def shutdown():
 
 @sio.on("reboot")
 def reboot():
+    print("Rebooting")
+    sio.disconnect()
+    global pingThreadContinue, pingThread, shutdownFunc
+    pingThreadContinue = False
+    if pingThread is not None:
+        pingThread.join()
     global rebootFunc
     if rebootFunc is not None:
         rebootFunc()

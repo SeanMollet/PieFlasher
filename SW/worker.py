@@ -361,14 +361,13 @@ def processFlash():
 def reboot():
     global currentState
     currentState = State.REBOOTING
-    worker_client.shutdown()
     sleep(2)
     os.system("sudo reboot")
+
 
 def shutdown():
     global currentState
     currentState = State.REBOOTING
-    worker_client.shutdown()
     sleep(2)
     os.system("sudo poweroff")
 
