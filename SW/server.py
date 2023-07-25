@@ -19,6 +19,7 @@ from flask_socketio import (
 )
 import os
 import time
+import datetime
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -108,6 +109,7 @@ def postFile():
         "filename": filename,
         "voltage": request.form["voltage"],
         "desc": request.form["desc"],
+        "uploaded": str(datetime.datetime.now()),
     }
 
     # Don't overwrite files, append a numeric suffix
