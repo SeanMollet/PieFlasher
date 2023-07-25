@@ -28,16 +28,16 @@
             {{ printExists(flasher["RecentStatus"]["Status"]) }}
         </td>
         <td>
-            {{ flasher["RecentStatus"]["Filename"] }}
+            {{ printExists(flasher["RecentStatus"]["Filename"]) }}
         </td>
         <td>
-            {{ flasher["RecentStatus"]["Progress"] }}%
+            {{ printExists(flasher["RecentStatus"]["Progress"]) }}%
         </td>
         <td>
-            {{ flasher["RecentStatus"]["Voltage"] }}V
+            {{ printExists(flasher["RecentStatus"]["Voltage"]) }}V
         </td>
         <td>
-            {{ flasher["RecentStatus"]["TargetVoltage"] }}V
+            {{ printExists(flasher["RecentStatus"]["TargetVoltage"]) }}V
         </td>
     </tr>
     {% endfor %}

@@ -2,5 +2,36 @@
 
 {% block content %}
 <h1>{% block title %} Flasher Configuration {% endblock %}</h1>
-
+<table border="1">
+    <tr>
+        <th>Filename</th>
+        <th width="100">Flash Target Voltage</th>
+        <th width="100">Flash 3.3V</th>
+        <th width="100">Flash 1.8V</th>
+        <th>Description</th>
+        <th>Uploaded</th>
+    </tr>
+    {% for file in files %}
+    <tr>
+        <td>
+            {{ file["filename"] }}
+        </td>
+        <td>
+            <button type="Button">Flash {{ file[" voltage"] }}V</button>
+        </td>
+        <td>
+            <button type="Button">Flash 3.3V</button>
+        </td>
+        <td>
+            <button type="Button">Flash 1.8V</button>
+        </td>
+        <td>
+            {{ file["desc"] }}
+        </td>
+        <td>
+            {{ file["uploaded"] }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

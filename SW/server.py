@@ -75,7 +75,17 @@ def upload():
 
 @app.route("/configure/")
 def configure():
-    return render_template("configure.html")
+    allFiles = os.listdir(filesPath)
+    viewFiles = []
+    for file in allFiles:
+        if ".data.json" in file:
+            try:
+                with open(Path(filesPath, file), "r") as dataFile:
+                    contents = dataFile.read()
+                    viewFiles.append(json.loads(contents))
+            except Exception as E:
+                print("Error loading files:", E)
+    return render_template("configure.html", files=viewFiles)
 
 
 @app.route("/about/")
@@ -105,12 +115,6 @@ def postFile():
     if not ("voltage" in request.form and "desc" in request.form):
         print("")
     filename = secure_filename(file.filename)
-    fileData = {
-        "filename": filename,
-        "voltage": request.form["voltage"],
-        "desc": request.form["desc"],
-        "uploaded": str(datetime.datetime.now()),
-    }
 
     # Don't overwrite files, append a numeric suffix
     file_suffix = 2
@@ -125,6 +129,13 @@ def postFile():
             break
 
     file.save(fullPath)
+
+    fileData = {
+        "filename": filename,
+        "voltage": request.form["voltage"],
+        "desc": request.form["desc"],
+        "uploaded": str(datetime.datetime.now()),
+    }
 
     fullDataPath = os.path.join(filesPath, filename + ".data.json")
     with open(fullDataPath, "w") as dataFile:
