@@ -54,6 +54,12 @@ def shutdown():
     exit(0)
 
 
+@sio.on("reboot")
+def reboot():
+    print("Rebooting")
+    os.system("sudo reboot")
+
+
 @sio.on("my_response")
 def my_response(data):
     print("Data received:", data)
