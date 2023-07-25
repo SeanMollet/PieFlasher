@@ -2,6 +2,8 @@
 Flash NOR and NAND flash chips quickly from a Raspberry PI. Supports 2,3,4,0,0W,0-2
 Also supports integration with automated chip flashers.
 
+This software is not secure. The architecture is not secure. The code has some basic sanity checks, but there are countless ways it could be exploited. Don't expose it to the internet. You have been warned.
+
 ## Initial setup
 
 ### The very beginning
