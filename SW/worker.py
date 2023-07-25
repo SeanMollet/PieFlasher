@@ -32,6 +32,7 @@ State = Enum(
         "FLASHING",
         "VERIFYING",
         "ERROR",
+        "REBOOTING"
     ],
 )
 
@@ -138,8 +139,10 @@ def show_display(device):
         status = "Flashing " + str(currentProgress) + "%"
     elif currentState == State.VERIFYING:
         status = "Verifying"
-    elif currentState == State.Error:
+    elif currentState == State.ERROR
         status = "Error"
+    elif currentState == State.REBOOTING:
+        status = "Rebooting"
 
     draw.text((0, 28), status, font=oledFont, fill="white")
     draw.rectangle((0, 44, 127, 63), fill="black", outline="white")

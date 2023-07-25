@@ -57,7 +57,7 @@ def shutdown():
 @sio.on("reboot")
 def reboot():
     print("Rebooting")
-    os.system("sudo reboot")
+    threading.Thread(target=reboot).start()
 
 
 @sio.on("my_response")
@@ -103,6 +103,11 @@ def sendStatus(
         sio.emit("loggingData", latestStatus)
     except Exception:
         pass
+
+
+def reboot():
+    sleep(2)
+    os.system("sudo reboot")
 
 
 pingThreadContinue = True
