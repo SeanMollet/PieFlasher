@@ -9,6 +9,7 @@ from utils import isfloat
 
 latestStatus = None
 hostName = platform.uname()[1]
+rebootFunc = None
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
 
@@ -56,8 +57,9 @@ def shutdown():
 
 @sio.on("reboot")
 def reboot():
-    print("Rebooting")
-    threading.Thread(target=reboot).start()
+    global rebootFunc
+    if rebootFunc is not None:
+        rebootFunc()
 
 
 @sio.on("my_response")
@@ -79,6 +81,11 @@ def sendPeriodicPing():
 def setFileUpdate(updateFunction: Callable):
     global fileUpdateFunction
     fileUpdateFunction = updateFunction
+
+
+def setReboot(rebootFunction: Callable):
+    global rebootFunc
+    rebootFunc = rebootFunction
 
 
 def sendLogData(logFile, logData):
@@ -103,11 +110,6 @@ def sendStatus(
         sio.emit("loggingData", latestStatus)
     except Exception:
         pass
-
-
-def reboot():
-    sleep(2)
-    os.system("sudo reboot")
 
 
 pingThreadContinue = True

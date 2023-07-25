@@ -19,6 +19,7 @@ from luma.core.render import canvas
 from luma.oled.device import ssd1306
 from PIL import ImageFont, Image, ImageDraw
 from enum import Enum
+from time import sleep
 
 
 State = Enum(
@@ -58,6 +59,7 @@ def updateCurrentFile(fileName, voltage):
 
 
 worker_client.setFileUpdate(updateCurrentFile)
+worker_client.setReboot(reboot)
 
 
 def show_display(device):
@@ -287,6 +289,13 @@ def processFlash():
 
     bar.finish()
     currentState = State.IDLE
+
+
+def reboot():
+    global currentState
+    currentState = State.REBOOTING
+    sleep(2)
+    os.system("sudo reboot")
 
 
 def sigint_handler(signal, frame):
