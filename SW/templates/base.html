@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} {% endblock %} - PieFlasher</title>
+    <style>
+        .PieFlasher {
+            font-size: 2em;
+            color: crimson;
+        }
+
+        .navbar {
+            height: 80px;
+            position: relative;
+        }
+
+        nav a {
+            color: #1d36d2;
+            font-size: 2em;
+            margin-left: 50px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <img src="/images/PieSlice.png" height="60" />
+        <span class="PieFlasher">PieFlasher</span>
+        <a href="{{ url_for('status') }}">Status</a>
+        <a href="{{ url_for('logs') }}">Logs</a>
+        <a href="{{ url_for('upload') }}">Upload</a>
+        <a href="{{ url_for('configure') }}">Configure</a>
+        <a href="{{ url_for('about') }}">About</a>
+    </nav>
+    <hr>
+    <div class="content">
+        {% block content %} {% endblock %}
+    </div>
+</body>
+
+</html>
