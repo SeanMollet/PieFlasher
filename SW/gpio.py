@@ -23,9 +23,6 @@ class pi_gpio:
             else:
                 GPIO.setup(pin[0], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    def __del__(self) -> None:
-        GPIO.cleanup()
-
     def setPin(self, pin: str, value: bool):
         if self.pins[pin] is not None and self.pins[pin][2] == GPIO.OUT:
             GPIO.output(self.pins[pin][0], value)

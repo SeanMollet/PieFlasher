@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 import socketio
 import os
+import threading
+from time import sleep
 from typing import Callable
 from utils import isfloat
 
+
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
-sio.emit("my_ping")
-sio.emit("register", "Flasher_A")
-
-fileUpdateFunction = None
 
 
 @sio.on("my_pong")
@@ -39,12 +38,27 @@ def serverConnected():
 def shutdown():
     print("Shutting down")
     sio.disconnect()
+    global pingThreadContinue, pingThread
+    pingThreadContinue = False
+    if pingThread is not None:
+        pingThread.join()
     exit(0)
 
 
 @sio.on("my_response")
 def my_response(data):
     print("Data received:", data)
+
+
+def sendPeriodicPing():
+    global pingThreadContinue
+    loopCount = 0
+    while pingThreadContinue:
+        if sio.connected and loopCount > 100:
+            sio.emit("my_ping")
+            loopCount = 0
+        sleep(0.1)
+        loopCount += 1
 
 
 def setFileUpdate(updateFunction: Callable):
@@ -54,3 +68,12 @@ def setFileUpdate(updateFunction: Callable):
 
 def sendLogData(logFile, logData):
     sio.emit("loggingData", {"logFile": os.path.basename(logFile), "logData": logData})
+
+
+pingThreadContinue = True
+pingThread = threading.Thread(target=sendPeriodicPing)
+pingThread.start()
+
+sio.emit("register", "Flasher_A")
+
+fileUpdateFunction = None

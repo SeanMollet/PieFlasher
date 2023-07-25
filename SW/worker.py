@@ -5,6 +5,7 @@ import os
 import progressbar
 import threading
 import worker_client
+import signal
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
@@ -252,9 +253,9 @@ def processFlash():
         result = flashImage(None, logFile, True, chip, size)
     else:
         if not os.path.isfile(currentFile):
-            logdata(logFile,"File "+currentFile+" not found. Aborting flash.")
+            logdata(logFile, "File " + currentFile + " not found. Aborting flash.")
             result = False
-        else:    
+        else:
             with open(currentFile, "rb") as imageFile:
                 data = imageFile.read()
                 result = flashImage(data, logFile, False)
@@ -270,6 +271,12 @@ def processFlash():
     currentState = State.IDLE
 
 
+def sigint_handler(signal, frame):
+    print("Shutting down")
+    worker_client.shutdown()
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "erase":
@@ -279,6 +286,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 2 and isfloat(sys.argv[2]):
         currentVoltageTarget = float(sys.argv[2])
+    signal.signal(signal.SIGINT, sigint_handler)
 
     try:
         serial = i2c(port=1, address=0x3C)
@@ -286,4 +294,4 @@ if __name__ == "__main__":
         adc = i2cAdc()
         main()
     except KeyboardInterrupt:
-        pass
+        sigint_handler()
