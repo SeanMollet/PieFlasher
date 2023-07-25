@@ -37,6 +37,7 @@ State = Enum(
     ],
 )
 
+
 oledFontPath = str(Path(__file__).resolve().parent.joinpath("fonts", "FreePixel.ttf"))
 oledFont = ImageFont.truetype(oledFontPath, 16)
 
@@ -53,9 +54,16 @@ fileScrollBack = False
 
 
 def updateCurrentFile(fileName, voltage):
-    global currentFile, currentVoltageTarget
+    global currentState, currentProgress, currentFile, currentVoltage, currentVoltageTarget
     currentFile = fileName
     currentVoltageTarget = voltage
+    worker_client.sendStatus(
+        currentState.capitalize(),
+        currentFile,
+        currentProgress,
+        currentVoltage,
+        currentVoltageTarget,
+    )
 
 
 def show_display(device):
@@ -161,7 +169,7 @@ def main():
             currentState = State.IDLE
             currentVoltage = adc.getVoltage()
             worker_client.sendStatus(
-                "Idle",
+                currentState.capitalize(),
                 currentFile,
                 currentProgress,
                 currentVoltage,
@@ -233,7 +241,11 @@ def processFlash():
         bar.update(pos, task=task)
         currentProgress = int((pos / fileSize) * 100)
         worker_client.sendStatus(
-            task, currentFile, currentProgress, currentVoltage, currentVoltageTarget
+            currentState.capitalize(),
+            currentFile,
+            currentProgress,
+            currentVoltage,
+            currentVoltageTarget,
         )
 
     logFile = getLogFileName(updateStatus)
