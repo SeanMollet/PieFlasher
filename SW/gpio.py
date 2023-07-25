@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import RPi.GPIO as GPIO
+import threading
+from time import sleep
 
 
 class pi_gpio:
@@ -57,6 +59,14 @@ class pi_gpio:
 
     def setPwrEn(self, value: bool) -> None:
         self.setPin("PWR_EN", not value)
+
+    def holdSignalWorker(self, signal, delay):
+        self.setPin(signal, False)
+        sleep(delay)
+        self.setPin(signal, True)
+
+    def holdSignal(self, signal, delay) -> None:
+        threading.Thread(target=self.holdSignalWorker, args=[signal, delay]).start()
 
 
 if __name__ == "__main__":

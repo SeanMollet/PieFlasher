@@ -245,6 +245,8 @@ def logdata(logFile, *args):
 def processFlash():
     global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, currentEraseMode
 
+    gpio.setSigBusy(False)
+
     fileSize = 0
     fullPath = Path(currentFilePath, currentFile)
     if os.path.isfile(fullPath):
@@ -306,6 +308,8 @@ def processFlash():
             logdata(logFile, "Unable to set requested voltage. Aborting.")
             disablePower()
             currentState = State.ERROR
+            gpio.setSigBusy(True)
+            gpio.holdSignal("SIG_NG", 1)
             return
 
     currentProgress = 0
@@ -342,6 +346,15 @@ def processFlash():
     disablePower()
 
     bar.finish()
+
+    # This is down here so we don't tell the machine we're done until we've de-powered the chip
+    if result:
+        gpio.setSigBusy(True)
+        gpio.holdSignal("SIG_OK", 1)
+    else:
+        gpio.setSigBusy(True)
+        gpio.holdSignal("SIG_NG", 1)
+
     currentState = State.IDLE
 
 
