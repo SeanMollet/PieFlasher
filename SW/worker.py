@@ -32,7 +32,7 @@ State = Enum(
         "FLASHING",
         "VERIFYING",
         "ERROR",
-        "REBOOTING"
+        "REBOOTING",
     ],
 )
 
@@ -139,7 +139,7 @@ def show_display(device):
         status = "Flashing " + str(currentProgress) + "%"
     elif currentState == State.VERIFYING:
         status = "Verifying"
-    elif currentState == State.ERROR
+    elif currentState == State.ERROR:
         status = "Error"
     elif currentState == State.REBOOTING:
         status = "Rebooting"
