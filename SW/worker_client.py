@@ -7,6 +7,8 @@ from typing import Callable
 from utils import isfloat
 
 
+latestStatus = None
+
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
 
@@ -32,6 +34,9 @@ def newFile(fileData):
 @sio.on("ConnectedResponse")
 def serverConnected():
     print("[  SERVER] Server connected")
+    # In case the server restarted, send it our most recent status
+    if latestStatus is not None:
+        sio.emit("loggingData", latestStatus)
 
 
 @sio.on("shutdown")
@@ -68,6 +73,25 @@ def setFileUpdate(updateFunction: Callable):
 
 def sendLogData(logFile, logData):
     sio.emit("loggingData", {"logFile": os.path.basename(logFile), "logData": logData})
+
+
+def sendStatus(
+    status: str, filename: str, progress: float, voltage: float, targetVoltage: float
+):
+    global latestStatus
+    # This either worked or it didn't, if it didn't, we don't care
+    try:
+        latestStatus = {
+            "Status": status,
+            "Filename": filename,
+            "Progress": progress,
+            "Voltage": voltage,
+            "TargetVoltage": targetVoltage,
+        }
+
+        sio.emit("loggingData", latestStatus)
+    except Exception:
+        pass
 
 
 pingThreadContinue = True

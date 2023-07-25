@@ -42,6 +42,7 @@ currentState = State.STARTUP
 currentProgress = 0
 currentFile = ""
 currentEraseMode = False
+currentVoltage = 0.0
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
@@ -57,10 +58,11 @@ worker_client.setFileUpdate(updateCurrentFile)
 
 
 def show_display(device):
-    global currentState, currentProgress, currentFile, currentVoltageTarget, oledFont, fileScrollPos, fileScrollBack
+    global currentState, currentProgress, currentFile, currentVoltage, currentVoltageTarget, oledFont, fileScrollPos, fileScrollBack
 
     background = Image.new("RGBA", device.size, "black")
 
+    currentVoltage = adc.getVoltage()
     if currentState == State.STARTUP:
         pieImagePath = str(
             Path(__file__).resolve().parent.joinpath("images", "PieSlice.png")
@@ -114,7 +116,7 @@ def show_display(device):
 
     draw.text(
         (0, 14),
-        str(round(adc.getVoltage(), 2))
+        str(round(currentVoltage, 2))
         + "V / "
         + str(round(currentVoltageTarget, 2))
         + "V",
@@ -147,13 +149,21 @@ def show_display(device):
 
 
 def main():
-    global imageChanged, imageCount, currentState, currentProgress
+    global imageChanged, imageCount, currentState, currentFile, currentProgress, currentVoltage, currentVoltageTarget
     startupOver = time.time() + 2
 
     prevStartValue = True
     while True:
         if currentState == State.STARTUP and time.time() > startupOver:
             currentState = State.IDLE
+            currentVoltage = adc.getVoltage()
+            worker_client.sendStatus(
+                "Idle",
+                currentFile,
+                currentProgress,
+                currentVoltage,
+                currentVoltageTarget,
+            )
 
         curStartValue = gpio.getSigStart()
         if curStartValue == False and prevStartValue == True:
@@ -199,7 +209,7 @@ def processFlash():
     )
 
     def updateStatus(pos, mode):
-        global currentProgress, currentState
+        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget
         task = "Idle"
         if mode == "R":
             currentState = State.READING
@@ -219,6 +229,9 @@ def processFlash():
 
         bar.update(pos, task=task)
         currentProgress = int((pos / fileSize) * 100)
+        worker_client.sendStatus(
+            task, currentFile, currentProgress, currentVoltage, currentVoltageTarget
+        )
 
     logFile = getLogFileName(updateStatus)
     print("Logging to:", logFile)
