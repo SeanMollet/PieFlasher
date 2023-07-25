@@ -2,12 +2,13 @@
 import socketio
 import os
 import threading
+import platform
 from time import sleep
 from typing import Callable
 from utils import isfloat
 
 latestStatus = None
-hostName = "Flasher_A"
+hostName = platform.uname()[1]
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
 
