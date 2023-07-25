@@ -10,8 +10,10 @@ from utils import isfloat
 latestStatus = None
 hostName = platform.uname()[1]
 rebootFunc = None
+fileUpdateFunction = None
 sio = socketio.Client()
 sio.connect("http://10.23.0.10:5000")
+sio.emit("register", hostName)
 
 
 @sio.on("my_pong")
@@ -32,16 +34,18 @@ def newFile(fileData):
         fileUpdateFunction(fileData["name"], float(fileData["voltage"]))
 
 
-@sio.on("ConnectedResponse")
+@sio.on("connect")
 def serverConnected():
     print("[  SERVER] Server connected")
     # In case the server restarted, send it our most recent status
-    if latestStatus is not None:
-        if sio.connected:
-            try:
+    if sio.connected:
+        try:
+            sio.emit("register", hostName)
+            if latestStatus is not None:
                 sio.emit("loggingData", latestStatus)
-            except Exception:
-                pass
+        except Exception as E:
+            print("BARF", E)
+            pass
 
 
 @sio.on("shutdown")
@@ -65,6 +69,13 @@ def reboot():
 @sio.on("my_response")
 def my_response(data):
     print("Data received:", data)
+
+
+def startPing():
+    global pingThreadContinue, pingThread
+    pingThreadContinue = True
+    pingThread = threading.Thread(target=sendPeriodicPing)
+    pingThread.start()
 
 
 def sendPeriodicPing():
@@ -112,10 +123,4 @@ def sendStatus(
         pass
 
 
-pingThreadContinue = True
-pingThread = threading.Thread(target=sendPeriodicPing)
-pingThread.start()
-
-sio.emit("register", hostName)
-
-fileUpdateFunction = None
+startPing()
