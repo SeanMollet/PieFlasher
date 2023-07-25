@@ -58,7 +58,7 @@ def updateCurrentFile(fileName, voltage):
     currentFile = fileName
     currentVoltageTarget = voltage
     worker_client.sendStatus(
-        str(currentState).capitalize(),
+        str(currentState.name).capitalize(),
         currentFile,
         currentProgress,
         currentVoltage,
@@ -169,7 +169,7 @@ def main():
             currentState = State.IDLE
             currentVoltage = adc.getVoltage()
             worker_client.sendStatus(
-                str(currentState).capitalize(),
+                str(currentState.name).capitalize(),
                 currentFile,
                 currentProgress,
                 currentVoltage,
@@ -241,7 +241,7 @@ def processFlash():
         bar.update(pos, task=task)
         currentProgress = int((pos / fileSize) * 100)
         worker_client.sendStatus(
-            str(currentState).capitalize(),
+            str(currentState.name).capitalize(),
             currentFile,
             currentProgress,
             currentVoltage,
