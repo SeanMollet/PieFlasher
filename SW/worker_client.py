@@ -11,8 +11,10 @@ latestStatus = None
 hostName = platform.uname()[1]
 rebootFunc = None
 fileUpdateFunction = None
+server = "http://10.23.0.10:5000"
+
 sio = socketio.Client()
-sio.connect("http://10.23.0.10:5000")
+sio.connect(server)
 sio.emit("register", hostName)
 
 
@@ -113,13 +115,17 @@ def sendStatus(
             "Status": status,
             "Filename": filename,
             "Progress": progress,
-            "Voltage": voltage,
-            "TargetVoltage": targetVoltage,
+            "Voltage": round(voltage, 2),
+            "TargetVoltage": round(targetVoltage, 2),
         }
 
         sio.emit("loggingData", latestStatus)
     except Exception:
         pass
+
+
+def getServer():
+    return server
 
 
 startPing()

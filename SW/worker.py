@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import time
+import requests
 import sys
 import os
 import progressbar
@@ -7,6 +8,8 @@ import platform
 import threading
 import worker_client
 import signal
+from urllib.parse import urljoin
+from tempfile import mkdtemp
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
@@ -34,6 +37,7 @@ State = Enum(
         "VERIFYING",
         "ERROR",
         "REBOOTING",
+        "DOWNLOADING",
     ],
 )
 
@@ -46,6 +50,7 @@ gpio = pi_gpio()
 currentState = State.STARTUP
 currentProgress = 0
 currentFile = ""
+currentFilePath = mkdtemp()
 currentEraseMode = False
 currentVoltage = 0.0
 currentVoltageTarget = 0.0
@@ -53,17 +58,55 @@ fileScrollPos = 0
 fileScrollBack = False
 
 
+def downloadNewFile(fileName):
+    global currentProgress, currentState, currentFile, currentFilePath, currentVoltage, currentVoltageTarget
+    currentState = State.DOWNLOADING
+
+    server = worker_client.getServer()
+    if len(server) == 0:
+        return
+    fullUrl = urljoin(server, "loadFile/" + fileName)
+    try:
+        with requests.get(fullUrl, stream=True) as response:
+            outputPath = Path(currentFilePath, fileName)
+            with open(outputPath, "wb") as file:
+                total_size = int(response.headers.get("Content-Length"))
+                chunk_size = 4096
+                for i, chunk in enumerate(response.iter_content(chunk_size=chunk_size)):
+                    # calculate current percentage
+                    currentProgress = (i * chunk_size / total_size) * 100
+                    file.write(chunk)
+
+        # Delete the currentfile from tmpfs
+        if len(currentFile) > 0 and currentFile != fileName:
+            oldPath = Path(currentFilePath, currentFile)
+            os.remove(oldPath)
+
+        currentFile = fileName
+        currentState = State.IDLE
+        currentProgress = 0
+
+        worker_client.sendStatus(
+            str(currentState.name).capitalize(),
+            currentFile,
+            currentProgress,
+            currentVoltage,
+            currentVoltageTarget,
+        )
+    except Exception as E:
+        print("Failed to download:", fileName)
+        print("Error is:", E)
+        currentState = State.IDLE
+
+
 def updateCurrentFile(fileName, voltage):
     global currentState, currentProgress, currentFile, currentVoltage, currentVoltageTarget
-    currentFile = fileName
+    while currentState != State.IDLE:
+        print("Waiting for Idle before starting download")
+        sleep(1)
     currentVoltageTarget = voltage
-    worker_client.sendStatus(
-        str(currentState.name).capitalize(),
-        currentFile,
-        currentProgress,
-        currentVoltage,
-        currentVoltageTarget,
-    )
+    downloadThread = threading.Thread(target=downloadNewFile, args=[fileName])
+    downloadThread.start()
 
 
 def show_display(device):
@@ -149,6 +192,8 @@ def show_display(device):
         status = "Error"
     elif currentState == State.REBOOTING:
         status = "Rebooting"
+    elif currentState == State.DOWNLOADING:
+        status = "Downloading"
 
     draw.text((0, 28), status, font=oledFont, fill="white")
     draw.rectangle((0, 44, 127, 63), fill="black", outline="white")
@@ -198,11 +243,12 @@ def logdata(logFile, *args):
 
 
 def processFlash():
-    global currentState, currentProgress, currentFile, currentVoltageTarget, currentEraseMode
+    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, currentEraseMode
 
     fileSize = 0
-    if os.path.isfile(currentFile):
-        fileSize = os.path.getsize(currentFile)
+    fullPath = Path(currentFilePath, currentFile)
+    if os.path.isfile(fullPath):
+        fileSize = os.path.getsize(fullPath)
 
     widgets = [
         progressbar.Bar("*"),
@@ -280,11 +326,11 @@ def processFlash():
     if currentEraseMode:
         result = flashImage(None, logFile, True, chip, size)
     else:
-        if not os.path.isfile(currentFile):
+        if not os.path.isfile(fullPath):
             logdata(logFile, "File " + currentFile + " not found. Aborting flash.")
             result = False
         else:
-            with open(currentFile, "rb") as imageFile:
+            with open(fullPath, "rb") as imageFile:
                 data = imageFile.read()
                 result = flashImage(data, logFile, False)
     if result:
