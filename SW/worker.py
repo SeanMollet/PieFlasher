@@ -365,16 +365,24 @@ def reboot():
     sleep(2)
     os.system("sudo reboot")
 
+def shutdown():
+    global currentState
+    currentState = State.REBOOTING
+    worker_client.shutdown()
+    sleep(2)
+    os.system("sudo poweroff")
+
 
 def sigint_handler(signal, frame):
     print("Shutting down")
     worker_client.shutdown()
-    os.system("sudo poweroff")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
     worker_client.setFileUpdate(updateCurrentFile)
     worker_client.setReboot(reboot)
+    worker_client.setShutdown(shutdown)
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "erase":

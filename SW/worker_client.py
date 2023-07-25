@@ -10,6 +10,7 @@ from utils import isfloat
 latestStatus = None
 hostName = platform.uname()[1]
 rebootFunc = None
+shutdownFunc = None
 fileUpdateFunction = None
 server = "http://10.23.0.10:5000"
 
@@ -53,11 +54,12 @@ def serverConnected():
 def shutdown():
     print("Shutting down")
     sio.disconnect()
-    global pingThreadContinue, pingThread
+    global pingThreadContinue, pingThread, shutdownFunc
     pingThreadContinue = False
     if pingThread is not None:
         pingThread.join()
-    exit(0)
+    if shutdownFunc is not None:
+        shutdownFunc()
 
 
 @sio.on("reboot")
@@ -98,6 +100,11 @@ def setFileUpdate(updateFunction: Callable):
 def setReboot(rebootFunction: Callable):
     global rebootFunc
     rebootFunc = rebootFunction
+
+
+def setShutdown(shutdownFunction: Callable):
+    global shutdownFunc
+    shutdownFunc = shutdownFunction
 
 
 def sendLogData(logFile, logData):
