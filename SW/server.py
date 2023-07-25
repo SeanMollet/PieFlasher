@@ -19,6 +19,7 @@ from flask_socketio import (
 )
 import os
 import time
+import html
 import datetime
 import json
 from pathlib import Path
@@ -73,8 +74,43 @@ def upload():
     return render_template("upload.html")
 
 
+@app.route("/flash/", methods=["POST"])
+def flashSelected():
+    if (
+        "filename" not in request.form
+        or "voltage" not in request.form
+        or len(request.form["filename"]) == 0
+        or len(request.form["voltage"]) == 0
+    ):
+        return configure()
+
+    filename = html.escape(request.form["filename"])
+    voltage = html.escape(request.form["voltage"])
+    return render_template("flash.html", filename=filename, voltage=voltage)
+
+
+@app.route("/verifiedflash/", methods=["POST"])
+def verifiedFlashSelected():
+    global socketio
+    if (
+        "filename" not in request.form
+        or "voltage" not in request.form
+        or len(request.form["filename"]) == 0
+        or len(request.form["voltage"]) == 0
+    ):
+        return configure()
+
+    filename = html.escape(request.form["filename"])
+    voltage = html.escape(request.form["voltage"])
+
+    fileData = {"name": filename, "voltage": voltage}
+    socketio.emit("newFile", fileData, namespace="/")
+
+    return configure("Selected:" + filename + " @ " + voltage + "V")
+
+
 @app.route("/configure/")
-def configure():
+def configure(result=""):
     allFiles = os.listdir(filesPath)
     viewFiles = []
     for file in allFiles:
@@ -85,7 +121,7 @@ def configure():
                     viewFiles.append(json.loads(contents))
             except Exception as E:
                 print("Error loading files:", E)
-    return render_template("configure.html", files=viewFiles)
+    return render_template("configure.html", files=viewFiles, result=result)
 
 
 @app.route("/about/")
@@ -134,6 +170,7 @@ def postFile():
         "filename": filename,
         "voltage": request.form["voltage"],
         "desc": request.form["desc"],
+        "size": os.stat(fullPath).st_size,
         "uploaded": str(datetime.datetime.now()),
     }
 
@@ -147,6 +184,7 @@ def postFile():
 
 @socketio.event
 def newFileSelected(fileData):
+    print("Selecting new file:", fileData)
     emit("newFile", fileData, broadcast=True)
 
 

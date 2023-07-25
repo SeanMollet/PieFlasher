@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Confirm flash selection {% endblock %}</h1>
+<h2>You have selected to flash {{ filename }} at {{ voltage }}V.</h2>
+<span class="BigRed">Double check the voltage before flashing!</span>
+<br />
+<form action="/verifiedflash/" method="post" id="verifiedFlashForm">
+    <input type="hidden" name="filename" id="filename" value="{{ filename }}">
+    <input type="hidden" name="voltage" id="voltage" value="{{ voltage }}">
+</form>
+<button style="width:100px; height:100px;background-color:chartreuse;" onclick="doit()">Yes, I know what I'm
+    doing</button>
+<button style="width:400px; height:400px;background-color: crimson;" onclick="gtfo()">No, get me away from
+    here!</button>
+
+<script>
+    function doit() {
+        let verifiedFlashForm = document.getElementById("verifiedFlashForm");
+        verifiedFlashForm.submit();
+    }
+
+    function gtfo() {
+        window.location = "https://bit.ly/3BlS71b";
+    }
+</script>
+{% endblock %}

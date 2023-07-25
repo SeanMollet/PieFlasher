@@ -1,15 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<span class="PieFlasher">{{ result }}</span>
 <h1>{% block title %} Flasher Configuration {% endblock %}</h1>
-<table border="1">
+<table border="1" id="filesList">
     <tr>
-        <th>Filename</th>
-        <th width="100">Flash Target Voltage</th>
-        <th width="100">Flash 3.3V</th>
-        <th width="100">Flash 1.8V</th>
-        <th>Description</th>
-        <th>Uploaded</th>
+        <th onclick="sortTable(0)">Filename</th>
+        <th onclick="sortTable(1)">Description</th>
+        <th onclick="sortTable(2)">Size</th>
+        <th onclick="sortTable(3)" width="100">Flash Target Voltage</th>
+        <th onclick="sortTable(4)" width="100">Flash 3.3V</th>
+        <th onclick="sortTable(5)" width="100">Flash 1.8V</th>
+        <th onclick="sortTable(6)" width="100">Flash Other</th>
+        <th onclick="sortTable(7)"> Uploaded</th>
     </tr>
     {% for file in files %}
     <tr>
@@ -17,16 +20,32 @@
             {{ file["filename"] }}
         </td>
         <td>
-            <button type="Button">Flash {{ file[" voltage"] }}V</button>
+            {{ printExists(file["desc"]) }}
         </td>
         <td>
-            <button type="Button">Flash 3.3V</button>
+            {{ printExists(file["size"]) }}
         </td>
         <td>
-            <button type="Button">Flash 1.8V</button>
+            <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+file["voltage"]+")"
+                }}">Flash
+                {{
+                file["voltage"] }}V</button>
         </td>
         <td>
-            {{ file["desc"] }}
+            <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"3.3)" }}">Flash
+                3.3V</button>
+        </td>
+        <td>
+            <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"1.8)" }}">Flash
+                1.8V</button>
+        </td>
+        <td>
+
+            <input type="text" placeholder="1.8" size="10" id="otherVoltage{{ loop.index }}" />
+            <button type="Button" onclick="
+            voltage = getElementById('otherVoltage{{ loop.index }}').value; {{ " selectFlash('" |safe+
+                file["filename"]+"',voltage);"|safe }}">Flash
+                Other</button>
         </td>
         <td>
             {{ file["uploaded"] }}
@@ -34,4 +53,78 @@
     </tr>
     {% endfor %}
 </table>
+
+<form action="/flash/" method="post" id="flashForm">
+    <input type="hidden" name="filename" id="flashFilename">
+    <input type="hidden" name="voltage" id="flashVoltage">
+</form>
+<script>
+    function selectFlash(file, voltage) {
+        voltage = String(voltage)
+        if (file.length && voltage.length > 0) {
+            let flashForm = document.getElementById("flashForm");
+            let flashFilename = document.getElementById("flashFilename");
+            let flashVoltage = document.getElementById("flashVoltage");
+
+            flashFilename.value = file;
+            flashVoltage.value = voltage;
+
+            flashForm.submit();
+        }
+    }
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("filesList");
+        switching = true;
+        // Set the sorting direction to ascending:
+        dir = "asc";
+        /* Make a loop that will continue until
+        no switching has been done: */
+        while (switching) {
+            // Start by saying: no switching is done:
+            switching = false;
+            rows = table.rows;
+            /* Loop through all table rows (except the
+            first, which contains table headers): */
+            for (i = 1; i < (rows.length - 1); i++) {
+                // Start by saying there should be no switching:
+                shouldSwitch = false;
+                /* Get the two elements you want to compare,
+                one from current row and one from the next: */
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                /* Check if the two rows should switch place,
+                based on the direction, asc or desc: */
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                /* If a switch has been marked, make the switch
+                and mark that a switch has been done: */
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                // Each time a switch is done, increase this count by 1:
+                switchcount++;
+            } else {
+                /* If no switching has been done AND the direction is "asc",
+                set the direction to "desc" and run the while loop again. */
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+</script>
 {% endblock %}
