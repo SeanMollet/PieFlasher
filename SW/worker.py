@@ -3,6 +3,7 @@ import time
 import sys
 import os
 import progressbar
+import platform
 import threading
 import worker_client
 import signal
@@ -18,6 +19,7 @@ from luma.core.render import canvas
 from luma.oled.device import ssd1306
 from PIL import ImageFont, Image, ImageDraw
 from enum import Enum
+
 
 State = Enum(
     "State",
@@ -125,7 +127,7 @@ def show_display(device):
     )
     status = ""
     if currentState == State.IDLE:
-        status = "Idle"
+        status = "Idle " + platform.uname()[1]
     elif currentState == State.LAUNCHING:
         status = "Starting up"
     elif currentState == State.READING:

@@ -6,7 +6,6 @@ from time import sleep
 from typing import Callable
 from utils import isfloat
 
-
 latestStatus = None
 hostName = "Flasher_A"
 sio = socketio.Client()
