@@ -134,6 +134,11 @@ def send_image(path):
     return send_from_directory("images", path)
 
 
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory("images", "favicon.ico")
+
+
 @app.route("/loadFile/<name>")
 def getFile(name):
     print("Attempting to download file:", name)
