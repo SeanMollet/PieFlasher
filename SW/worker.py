@@ -58,10 +58,6 @@ def updateCurrentFile(fileName, voltage):
     currentVoltageTarget = voltage
 
 
-worker_client.setFileUpdate(updateCurrentFile)
-worker_client.setReboot(reboot)
-
-
 def show_display(device):
     global currentState, currentProgress, currentFile, currentVoltage, currentVoltageTarget, oledFont, fileScrollPos, fileScrollBack
 
@@ -305,6 +301,9 @@ def sigint_handler(signal, frame):
 
 
 if __name__ == "__main__":
+    worker_client.setFileUpdate(updateCurrentFile)
+    worker_client.setReboot(reboot)
+
     if len(sys.argv) > 1:
         if sys.argv[1] == "erase":
             currentEraseMode = True
