@@ -361,6 +361,7 @@ def processFlash():
 def reboot():
     global currentState
     currentState = State.REBOOTING
+    worker_client.shutdown()
     sleep(2)
     os.system("sudo reboot")
 
@@ -368,7 +369,7 @@ def reboot():
 def sigint_handler(signal, frame):
     print("Shutting down")
     worker_client.shutdown()
-    sys.exit(0)
+    os.system("sudo poweroff")
 
 
 if __name__ == "__main__":
