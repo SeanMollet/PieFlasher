@@ -30,6 +30,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 filesPath = Path(os.getcwd(), "data", "files")
+logsPath = Path(os.getcwd(), "data", "logs")
 print("Using", os.path.abspath(filesPath), "as data path")
 if not os.path.isdir(filesPath):
     filesPath.mkdir(parents=True)
@@ -61,7 +62,7 @@ def liveLog(host):
         and "RecentLog" in clients[host]
         and len(clients[host]["RecentLog"]) > 0
     ):
-        logPath = os.path.join("data", "logs", host, clients[host]["RecentLog"])
+        logPath = os.path.join(logsPath, host, clients[host]["RecentLog"])
         with open(logPath, "r") as logFile:
             logData = logFile.read()
 
@@ -72,7 +73,7 @@ def liveLog(host):
 def viewLog(host, path):
     host = secure_filename(host)
     path = secure_filename(path)
-    logPath = os.path.join("data", "logs", host, path)
+    logPath = os.path.join(logsPath, host, path)
     logData = ""
     with open(logPath, "r") as logFile:
         logData = logFile.read()
@@ -102,7 +103,7 @@ def logsHost(host=""):
     else:
         logfiles = []
         host = secure_filename(host)
-        logFilesPath = os.path.join("data", "logs", host)
+        logFilesPath = os.path.join(logsPath, host)
         if os.path.isdir(logFilesPath):
             files = os.listdir(logFilesPath)
             for file in files:
@@ -335,7 +336,7 @@ def loggingData(data=None):
         updateClient(hostname, data["logFile"])
         emit("loggingData", data, to=hostname + "_Logging")
         # Save it
-        path = os.path.join("data", "logs", hostname)
+        path = os.path.join(logsPath, hostname)
         if not os.path.isdir(path):
             path.mkdir(parents=True)
         logPath = os.path.join(path, data["logFile"])
