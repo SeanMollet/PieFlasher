@@ -209,4 +209,5 @@ def printLogFileData(logFile: str, updateFunc: Callable) -> None:
 
 
 def setLogOutput(logOutputter: Callable):
+    global logOutput
     logOutput = logOutputter

@@ -138,6 +138,7 @@ def setShutdown(shutdownFunction: Callable):
 
 
 def sendLogData(logFile, logData):
+    global hostName
     sio.emit(
         "loggingData",
         {
@@ -164,7 +165,7 @@ def sendStatus(
         }
 
         if newStatus != latestStatus:
-            sio.emit("loggingData", latestStatus)
+            sio.emit("statusData", latestStatus)
             latestStatus = newStatus
     except Exception:
         pass

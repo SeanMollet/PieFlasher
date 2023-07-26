@@ -241,7 +241,6 @@ def sendLogData(logFile, logData):
 
 def logdata(logFile, *args):
     data = "".join(map(str, args)) + "\n"
-    sendLogData(logFile, data)
     with open(logFile, "a") as f:
         f.write(data)
 
