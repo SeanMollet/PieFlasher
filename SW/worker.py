@@ -14,7 +14,7 @@ from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
 from flash import flashImage, scanChip
-from database import getLogFileName, loggingComplete, setLogOutput,getconfig
+from database import getLogFileName, loggingComplete, setLogOutput, getconfig
 from utils import isfloat
 from pathlib import Path
 from luma.core.interface.serial import i2c
@@ -409,11 +409,11 @@ if __name__ == "__main__":
     try:
         rotation = getconfig("Rotation")
         if rotation == 90:
-            rotation =1
+            rotation = 1
         elif rotation == 180:
-            rotation =2
+            rotation = 2
         elif rotation == 270:
-            rotation =3
+            rotation = 3
 
         serial = i2c(port=1, address=0x3C)
         device = ssd1306(serial, rotate=rotation)
