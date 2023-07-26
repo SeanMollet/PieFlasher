@@ -234,31 +234,43 @@ def leaveLogging(message):
 
 
 @socketio.on("loggingData")
-def loggingData(data):
-    if data is not None:
-        hostname = session.get("hostName", "")
-        if "logFile" in data and "logData" in data:
-            print(hostname, "logged to", data["logFile"], data["logData"])
-            if len(hostname) > 0:
-                # Update client data and send it to the WS room if anyone is listening
-                updateClient(hostname, data["logFile"])
-                emit("loggingData", data, to=hostname + "Logging")
-            else:
-                hostname = "Unknown"
-            # Save it
-            path = Path("data", "logs", hostname)
-            if not os.path.isdir(path):
-                path.mkdir(parents=True)
-            logPath = os.path.join(path, data["logFile"])
-            with open(logPath, "a") as logFile:
-                logFile.write(data["logData"])
-        elif "Status" in data and len(hostname) > 0:
-            # We don't keep status messages, just pass them along if there's a client listening
-            if "Hostname" in data:
-                session["hostName"] = data["Hostname"]
-            print("Client:", hostname, "Status:", data)
-            updateClient(hostname, None, data)
-            emit("loggingData", data, to=hostname + "Logging")
+def loggingData(data=None):
+    if (
+        data is not None
+        and "Hostname" in data
+        and len(data["Hostname"]) > 0
+        and "logFile" in data
+        and "logData" in data
+    ):
+        hostname = data["Hostname"]
+        session["hostName"] = hostname
+        # print(hostname, "logged to", data["logFile"], data["logData"])
+        # Update client data and send it to the WS room if anyone is listening
+        updateClient(hostname, data["logFile"])
+        emit("loggingData", data, to=hostname + "Logging")
+        # Save it
+        path = Path("data", "logs", hostname)
+        if not os.path.isdir(path):
+            path.mkdir(parents=True)
+        logPath = os.path.join(path, data["logFile"])
+        with open(logPath, "a") as logFile:
+            logFile.write(data["logData"])
+
+
+@socketio.on("statusData")
+def statusData(data=None):
+    if (
+        data is not None
+        and "Hostname" in data
+        and "Status" in data
+        and len(data["Hostname"]) > 0
+    ):
+        hostname = data["Hostname"]
+        session["hostName"] = hostname
+        # We don't keep status messages, just pass them along if there's a client listening
+        # print("Client:", hostname, "Status:", data)
+        updateClient(hostname, None, data)
+        emit("statusData", data, to=hostname + "Status")
 
 
 @socketio.event
