@@ -69,6 +69,13 @@ def downloadNewFile(fileName):
 
     try:
         with requests.get(fullUrl, stream=True) as response:
+            if response.status_code != 200:
+                print(
+                    "Received error response loading file:",
+                    response.status_code,
+                    "Aborting.",
+                )
+                return
             outputPath = Path(currentFilePath, fileName)
             with open(outputPath, "wb") as file:
                 total_size = int(response.headers.get("Content-Length"))
