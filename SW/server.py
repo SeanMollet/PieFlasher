@@ -395,4 +395,4 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = fileTempPath
     # 256 MB should be more than enough
     app.config["MAX_CONTENT_PATH"] = 256 * 1024 * 1024
-    socketio.run(app, host="0.0.0.0")
+    socketio.run(app, host="0.0.0.0", allow_unsafe_werkzeug=True)
