@@ -64,9 +64,3 @@ def flashImage(
     except Exception:
         pass
     return False
-
-
-if __name__ == "__main__":
-    with open("/home/sean/testImage.img", mode="rb") as flashFile:
-        flashData = flashFile.read()
-        flashImage(flashData, "/tmp/flashRun.log")
