@@ -29,7 +29,7 @@ from operator import itemgetter
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
-filesPath = Path("data", "files")
+filesPath = os.path.join("data", "files")
 if not os.path.isdir(filesPath):
     filesPath.mkdir(parents=True)
 clients = {}
