@@ -6,13 +6,14 @@ import platform
 from time import sleep
 from typing import Callable
 from utils import isfloat
+from database import getconfig
 
 latestStatus = None
 hostName = platform.uname()[1]
 rebootFunc = None
 shutdownFunc = None
 fileUpdateFunction = None
-server = "http://10.23.0.10:5000"
+server = getconfig("Server")
 
 connectThread = None
 continueConnect = True
@@ -23,9 +24,10 @@ def connectThreadWorker():
     while not sio.connected and continueConnect:
         try:
             sio.connect(server)
+            print("[  SERVER] Connected to server:", server)
             sio.emit("register", hostName)
             sleep(0.5)
-        except ConnectionError:
+        except socketio.exceptions.ConnectionError:
             pass
 
 
@@ -152,7 +154,7 @@ def sendStatus(
     global latestStatus, hostName
     # This either worked or it didn't, if it didn't, we don't care
     try:
-        latestStatus = {
+        newStatus = {
             "Hostname": hostName,
             "Status": status,
             "Filename": filename,
@@ -161,7 +163,9 @@ def sendStatus(
             "TargetVoltage": round(targetVoltage, 2),
         }
 
-        sio.emit("loggingData", latestStatus)
+        if newStatus != latestStatus:
+            sio.emit("loggingData", latestStatus)
+            latestStatus = newStatus
     except Exception:
         pass
 

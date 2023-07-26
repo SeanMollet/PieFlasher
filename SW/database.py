@@ -7,6 +7,7 @@ import re
 from typing import Callable
 from datetime import datetime
 from time import sleep
+from pathlib import Path
 
 # Why JSON?
 # We could put this stuff in an actual db, SQLlite, MySQL, etc..
@@ -16,6 +17,8 @@ from time import sleep
 logComplete = False
 logThread = None
 logOutput = None
+
+loadedConfig = None
 
 
 def testDir(path) -> bool:
@@ -66,36 +69,47 @@ if not os.path.isdir(confDir):
     sys.exit(1)
 
 
-def loadConfiguration(name):
-    if not os.path.isdir(confDir):
-        return None
-    filename = name + ".json"
-    filePath = os.path.join(confDir, filename)
-    if not os.path.isfile(filePath):
-        return None
-    try:
-        with open(filePath) as f:
-            contents = f.read()
-            obj = json.loads(contents)
-            return obj
-    except Exception:
-        pass
-    return None
+def getDefaultConfig():
+    return {"Server": "http://10.23.0.10:5000"}
 
 
-def saveConfiguration(name, data) -> bool:
-    if not os.path.isdir(confDir):
-        return False
-    filename = name + ".json"
-    filePath = os.path.join(confDir, filename)
+def getConfigFilePath():
+    return os.path.join(dataPath, "config")
+
+
+def saveConfig():
+    global loadedConfig
+    configFilePath = getConfigFilePath()
     try:
-        with open(filePath, "w") as f:
-            contents = json.dumps(data)
-            f.write(contents)
-            return True
-    except Exception:
-        pass
-    return False
+        with open(configFilePath, "w") as configFile:
+            data = json.dumps(loadedConfig)
+            configFile.write(data)
+    except IOError:
+        print("Error writing configuration to:", configFilePath)
+
+
+def loadConfig():
+    global loadedConfig
+    configFilePath = getConfigFilePath()
+    if os.path.isfile(configFilePath):
+        with open(configFilePath, "r") as configFile:
+            data = configFile.read()
+            newConfig = json.loads(data)
+            if newConfig:
+                loadedConfig = newConfig
+    else:
+        # Create a default configuration
+        loadedConfig = getDefaultConfig()
+        saveConfig()
+
+
+def getconfig(key: str):
+    global loadedConfig
+    if loadedConfig is None:
+        loadConfig()
+    if key in loadedConfig:
+        return loadedConfig[key]
+    return ""
 
 
 def getLogFileName(updateFunc: Callable) -> str:

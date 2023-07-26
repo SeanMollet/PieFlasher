@@ -2,7 +2,6 @@
 from i2c import i2cAdc, i2cPot
 from gpio import pi_gpio
 from time import sleep
-from database import saveConfiguration, loadConfiguration
 
 gpio = pi_gpio()
 adc = i2cAdc()
