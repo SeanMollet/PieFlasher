@@ -21,12 +21,12 @@ sio = socketio.Client()
 
 
 def connectThreadWorker():
+    global latestStatus
     while not sio.connected and continueConnect:
         try:
             sio.connect(server)
             print("[  SERVER] Connected to server:", server)
             sio.emit("register", hostName)
-            sleep(0.5)
         except socketio.exceptions.ConnectionError:
             pass
 
@@ -165,8 +165,8 @@ def sendStatus(
         }
 
         if newStatus != latestStatus:
-            sio.emit("statusData", latestStatus)
             latestStatus = newStatus
+            sio.emit("statusData", latestStatus)
     except Exception:
         pass
 
