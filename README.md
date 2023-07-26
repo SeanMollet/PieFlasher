@@ -67,3 +67,47 @@ git checkout v.1.3.0
 make -j 4
 sudo make install
 ```
+
+### The files
+
+Most files in here can be run on their own and will do something useful.
+
+
+| File | Solo usage |
+| gpio.py | Test GPIO inputs/outputs |
+| i2c.py | Test I2C ADC and digital POT |
+| manualFlash.py | Flash a chip with a given file and voltage |
+| power.py | Test the adjustable power supply (DO NOT HAVE A CHIP ATTACHED!)|
+| worker_client.py | Connect to server and print messages |
+
+### Running the system
+
+#### Server
+
+Install the pre-requisite python packages as per above on the client devices and on a server. 
+
+The server is run with 
+
+```
+python3 server.py
+```
+
+It will open port 5000 on all interface. Open this in a browser to see the web interface. It stores log files and image files in data/logs and data/images respectively
+
+#### Client
+
+The client is run with:
+
+```
+python3 worker.py
+```
+
+The first time it's run it will save a configuration file in data/config. This file specifies the url of the server. Adjust as needed. 
+
+To run the client automatically at startup, copy pieflasher.service to /etc/systemd/system. Edit the file, changing sean and /home/sean to your respective user and path where the repo is stored. Then run:
+
+```
+systemd enable pieflasher
+```
+
+This will automatically launch PieFlasher at startup and will restart it if it were to fail.

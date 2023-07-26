@@ -1,0 +1,12 @@
+[Unit]
+Description=PieFlasher chip flashing server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=sean
+WorkingDirectory=/home/sean
+ExecStart=/usr/bin/python3 /home/sean/PieFlasher/SW/server.py
+
+[Install]
+WantedBy=multi-user.target
