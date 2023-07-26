@@ -414,6 +414,8 @@ if __name__ == "__main__":
             rotation = 2
         elif rotation == 270:
             rotation = 3
+        elif rotation is None:
+            rotation = 0
 
         serial = i2c(port=1, address=0x3C)
         device = ssd1306(serial, rotate=rotation)

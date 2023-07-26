@@ -70,7 +70,7 @@ if not os.path.isdir(confDir):
 
 
 def getDefaultConfig():
-    return {"Server": "http://10.23.0.10:5000","Rotation": 0}
+    return {"Server": "http://10.23.0.10:5000", "Rotation": 0}
 
 
 def getConfigFilePath():
@@ -115,9 +115,10 @@ def getconfig(key: str):
     else:
         default = getDefaultConfig()
         if key in default:
-            print("Setting default value for missing config option:",key)
+            print("Setting default value for missing config option:", key)
             loadedConfig[key] = default[key]
             saveConfig()
+            return loadedConfig[key]
     return ""
 
 
