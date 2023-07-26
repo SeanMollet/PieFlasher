@@ -74,7 +74,7 @@ def getDefaultConfig():
 
 
 def getConfigFilePath():
-    return os.path.join(dataPath, "config")
+    return os.path.join(dataPath, "config","configuration.json")
 
 
 def saveConfig():
