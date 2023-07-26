@@ -336,7 +336,7 @@ def loggingData(data=None):
         updateClient(hostname, data["logFile"])
         emit("loggingData", data, to=hostname + "_Logging")
         # Save it
-        path = os.path.join(logsPath, hostname)
+        path = Path(logsPath, hostname)
         if not os.path.isdir(path):
             path.mkdir(parents=True)
         logPath = os.path.join(path, data["logFile"])
