@@ -370,7 +370,7 @@ def reboot():
     os.system("sudo reboot")
 
 
-def shutdown():
+def systemShutdown():
     global currentState
     currentState = State.REBOOTING
     sleep(2)
@@ -387,7 +387,7 @@ if __name__ == "__main__":
     worker_client.startup()
     worker_client.setFileUpdate(updateCurrentFile)
     worker_client.setReboot(reboot)
-    worker_client.setShutdown(shutdown)
+    worker_client.setShutdown(systemShutdown)
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "erase":

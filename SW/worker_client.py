@@ -14,12 +14,24 @@ shutdownFunc = None
 fileUpdateFunction = None
 server = "http://10.23.0.10:5000"
 
+connectThread = None
+continueConnect = True
 sio = socketio.Client()
 
 
+def connectThreadWorker():
+    while not sio.connected and continueConnect:
+        try:
+            sio.connect(server)
+            sio.emit("register", hostName)
+            sleep(0.5)
+        except ConnectionError:
+            pass
+
+
 def startup():
-    sio.connect(server)
-    sio.emit("register", hostName)
+    connectThread = threading.Thread(target=connectThreadWorker)
+    connectThread.start()
 
 
 @sio.on("my_pong")
@@ -81,10 +93,13 @@ def my_response(data):
 
 def disconnect():
     sio.disconnect()
-    global pingThreadContinue, pingThread, shutdownFunc
+    global pingThreadContinue, pingThread, shutdownFunc, continueConnect, connectThread
     pingThreadContinue = False
     if pingThread is not None:
         pingThread.join()
+    continueConnect = False
+    if connectThread is not None:
+        connectThread.join()
 
 
 def startPing():
