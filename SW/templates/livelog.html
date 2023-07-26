@@ -60,7 +60,8 @@
             }
 
             $("#logView").append(msg.logData);
-            $("#logView").scrollTop = $("#logView").scrollHeight
+            $('#logView').scrollTop($('#logView')[0].scrollHeight);
+
             if (cb)
                 cb();
         });
