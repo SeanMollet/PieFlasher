@@ -45,23 +45,8 @@ def index():
 
 
 @app.route("/status/")
-def status():
-    global clients
-    flashers = []
-    keys = list(clients.keys())
-    keys.sort()
-    for client in keys:
-        flasher = clients[client]
-        if "Timestamp" in flasher:
-            lastSeen = time.time() - flasher["Timestamp"]
-            if lastSeen > 60:
-                continue
-            flasher["LastSeen"] = str(int(lastSeen)) + " Seconds ago"
-        if "Filename" in flasher and len(flasher["Filename"]) == 0:
-            flasher["Filename"] = "No file"
-
-        flashers.append(flasher)
-    return render_template("status.html", flashers=flashers)
+def status(result=""):
+    return render_template("status.html", result=result)
 
 
 @app.route("/logs/")
@@ -106,11 +91,11 @@ def verifiedFlashSelected():
     fileData = {"name": filename, "voltage": voltage}
     socketio.emit("newFile", fileData, namespace="/")
 
-    return configure("Selected:" + filename + " @ " + voltage + "V")
+    return status("Selected:" + filename + " @ " + voltage + "V")
 
 
 @app.route("/configure/")
-def configure(result=""):
+def configure():
     allFiles = os.listdir(filesPath)
     viewFiles = []
     for file in allFiles:
@@ -121,7 +106,7 @@ def configure(result=""):
                     viewFiles.append(json.loads(contents))
             except Exception as E:
                 print("Error loading files:", E)
-    return render_template("configure.html", files=viewFiles, result=result)
+    return render_template("configure.html", files=viewFiles)
 
 
 @app.route("/about/")
@@ -233,6 +218,18 @@ def leaveLogging(message):
     leave_room(message["client"] + "Logging")
 
 
+@socketio.event
+def joinStatus(message):
+    print("Client joined Status room")
+    join_room("Status")
+
+
+@socketio.event
+def leaveStatus(message):
+    print("Client left Status room")
+    leave_room("Status")
+
+
 @socketio.on("loggingData")
 def loggingData(data=None):
     if (
@@ -259,6 +256,7 @@ def loggingData(data=None):
 
 @socketio.on("statusData")
 def statusData(data=None):
+    # print("Status received:", data)
     if (
         data is not None
         and "Hostname" in data
@@ -270,7 +268,8 @@ def statusData(data=None):
         # We don't keep status messages, just pass them along if there's a client listening
         # print("Client:", hostname, "Status:", data)
         updateClient(hostname, None, data)
-        emit("statusData", data, to=hostname + "Status")
+        data["IP"] = request.remote_addr
+        emit("statusData", data, to="Status")
 
 
 @socketio.event
