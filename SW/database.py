@@ -113,6 +113,9 @@ def getconfig(key: str):
 
 
 def getLogFileName(updateFunc: Callable) -> str:
+    global logComplete
+
+    loggingComplete()
     filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
     logFilePath = os.path.join(logDir, filename)
     logComplete = False
