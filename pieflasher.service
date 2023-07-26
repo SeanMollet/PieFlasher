@@ -6,7 +6,7 @@ After=syslog.target network.target
 Type=simple
 User=sean
 WorkingDirectory=/home/sean
-ExecStart=/usr/bin/python3 /home/sean/PieFlasher/SW/worker.py
+ExecStart=/usr/bin/python3 -u /home/sean/PieFlasher/SW/worker.py
 
 [Install]
 WantedBy=multi-user.target

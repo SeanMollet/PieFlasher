@@ -22,6 +22,7 @@ sio = socketio.Client()
 
 def connectThreadWorker():
     global latestStatus
+    print("[  SERVER] Connecting to:", server)
     while not sio.connected and continueConnect:
         try:
             sio.connect(server)
@@ -29,6 +30,7 @@ def connectThreadWorker():
             sio.emit("register", hostName)
         except socketio.exceptions.ConnectionError:
             pass
+        sleep(0.2)
 
 
 def startup():

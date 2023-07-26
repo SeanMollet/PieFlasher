@@ -74,12 +74,13 @@ def getDefaultConfig():
 
 
 def getConfigFilePath():
-    return os.path.join(dataPath, "config","configuration.json")
+    return os.path.join(dataPath, "config", "configuration.json")
 
 
 def saveConfig():
     global loadedConfig
     configFilePath = getConfigFilePath()
+    print("Saving configuration to:", os.path.abspath(configFilePath))
     try:
         with open(configFilePath, "w") as configFile:
             data = json.dumps(loadedConfig)
@@ -91,6 +92,7 @@ def saveConfig():
 def loadConfig():
     global loadedConfig
     configFilePath = getConfigFilePath()
+    print("Loading configuration from:", os.path.abspath(configFilePath))
     if os.path.isfile(configFilePath):
         with open(configFilePath, "r") as configFile:
             data = configFile.read()
@@ -106,6 +108,7 @@ def loadConfig():
 def getconfig(key: str):
     global loadedConfig
     if loadedConfig is None:
+        print("Loading configuration")
         loadConfig()
     if key in loadedConfig:
         return loadedConfig[key]
