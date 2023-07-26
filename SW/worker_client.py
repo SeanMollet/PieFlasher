@@ -36,11 +36,6 @@ def startup():
     connectThread.start()
 
 
-@sio.on("my_pong")
-def my_pong():
-    print("[  SERVER] Received a pong")
-
-
 @sio.on("newFile")
 def newFile(fileData):
     global fileUpdateFunction
@@ -79,18 +74,9 @@ def shutdown():
 def reboot():
     print("Rebooting")
     sio.disconnect()
-    global pingThreadContinue, pingThread, shutdownFunc
-    pingThreadContinue = False
-    if pingThread is not None:
-        pingThread.join()
     global rebootFunc
     if rebootFunc is not None:
         rebootFunc()
-
-
-@sio.on("my_response")
-def my_response(data):
-    print("Data received:", data)
 
 
 def disconnect():
@@ -112,11 +98,11 @@ def startPing():
 
 
 def sendPeriodicPing():
-    global pingThreadContinue
+    global pingThreadContinue, latestStatus
     loopCount = 0
     while pingThreadContinue:
         if sio.connected and loopCount > 100:
-            sio.emit("my_ping")
+            sio.emit("statusData", latestStatus)
             loopCount = 0
         sleep(0.1)
         loopCount += 1
