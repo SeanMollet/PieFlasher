@@ -73,9 +73,16 @@ def downloadNewFile(fileName):
                 total_size = int(response.headers.get("Content-Length"))
                 chunk_size = 4096
                 for i, chunk in enumerate(response.iter_content(chunk_size=chunk_size)):
+                    file.write(chunk)
                     # calculate current percentage
                     currentProgress = (i * chunk_size / total_size) * 100
-                    file.write(chunk)
+                    worker_client.sendStatus(
+                        str(currentState.name).capitalize(),
+                        currentFile,
+                        currentProgress,
+                        currentVoltage,
+                        currentVoltageTarget,
+                    )
 
         # Delete the currentfile from tmpfs
         if len(currentFile) > 0 and currentFile != fileName:
