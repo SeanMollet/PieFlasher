@@ -67,6 +67,11 @@ def serverConnected():
 @sio.on("shutdown")
 def shutdown():
     print("Shutting down system")
+    global latestStatus
+    if latestStatus is not None:
+        latestStatus["Status"] = "Shutting down"
+        sio.emit("statusData", latestStatus)
+    sleep(0.2)
     disconnect()
     if shutdownFunc is not None:
         shutdownFunc()
@@ -74,7 +79,12 @@ def shutdown():
 
 @sio.on("reboot")
 def reboot():
-    print("Rebooting")
+    print("Rebooting system")
+    global latestStatus
+    if latestStatus is not None:
+        latestStatus["Status"] = "Rebooting"
+        sio.emit("statusData", latestStatus)
+    sleep(0.2)
     sio.disconnect()
     global rebootFunc
     if rebootFunc is not None:
