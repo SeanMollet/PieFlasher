@@ -6,7 +6,7 @@ import os
 import progressbar
 import platform
 import threading
-import worker_client
+import workerClient
 import signal
 from urllib.parse import urljoin
 from tempfile import mkdtemp
@@ -62,7 +62,7 @@ def downloadNewFile(fileName):
     global currentProgress, currentState, currentFile, currentFilePath, currentVoltage, currentVoltageTarget
     currentState = State.DOWNLOADING
 
-    server = worker_client.getServer()
+    server = workerClient.getServer()
     if len(server) == 0:
         return
     fullUrl = urljoin(server, "loadFile/" + fileName)
@@ -76,7 +76,7 @@ def downloadNewFile(fileName):
                 for i, chunk in enumerate(response.iter_content(chunk_size=chunk_size)):
                     # calculate current percentage
                     currentProgress = (i * chunk_size / total_size) * 100
-                    worker_client.sendStatus(
+                    workerClient.sendStatus(
                         str(currentState.name).capitalize(),
                         currentFile,
                         currentProgress,
@@ -94,7 +94,7 @@ def downloadNewFile(fileName):
         currentState = State.IDLE
         currentProgress = 0
 
-        worker_client.sendStatus(
+        workerClient.sendStatus(
             str(currentState.name).capitalize(),
             currentFile,
             currentProgress,
@@ -221,7 +221,7 @@ def main():
         if currentState == State.STARTUP and time.time() > startupOver:
             currentState = State.IDLE
             currentVoltage = adc.getVoltage()
-            worker_client.sendStatus(
+            workerClient.sendStatus(
                 str(currentState.name).capitalize(),
                 currentFile,
                 currentProgress,
@@ -244,7 +244,7 @@ def main():
 
 
 def sendLogData(logFile, logData):
-    worker_client.sendLogData(logFile, logData)
+    workerClient.sendLogData(logFile, logData)
 
 
 def logdata(logFile, *args):
@@ -299,7 +299,7 @@ def processFlash():
 
         bar.update(pos, task=task)
         currentProgress = int((pos / fileSize) * 100)
-        worker_client.sendStatus(
+        workerClient.sendStatus(
             str(currentState.name).capitalize(),
             currentFile,
             currentProgress,
@@ -386,15 +386,15 @@ def systemShutdown():
 
 def sigint_handler(signal, frame):
     print("Shutting down")
-    worker_client.disconnect()
+    workerClient.disconnect()
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    worker_client.startup()
-    worker_client.setFileUpdate(updateCurrentFile)
-    worker_client.setReboot(reboot)
-    worker_client.setShutdown(systemShutdown)
+    workerClient.startup()
+    workerClient.setFileUpdate(updateCurrentFile)
+    workerClient.setReboot(reboot)
+    workerClient.setShutdown(systemShutdown)
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "erase":
