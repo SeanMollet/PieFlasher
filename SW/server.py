@@ -331,7 +331,7 @@ def loggingData(data=None):
     ):
         hostname = data["Hostname"]
         session["hostName"] = hostname
-        print(hostname, "logged to", data["logFile"], data["logData"])
+        # print(hostname, "logged to", data["logFile"], data["logData"])
         # Update client data and send it to the WS room if anyone is listening
         updateClient(hostname, data["logFile"])
         emit("loggingData", data, to=hostname + "_Logging")
