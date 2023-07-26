@@ -106,7 +106,7 @@ def logsHost(host=""):
             files = os.listdir(logFilesPath)
             for file in files:
                 if file.endswith(".log"):
-                    status = os.stat(Path(logFilesPath, file))
+                    status = os.stat(os.path.join(logFilesPath, file))
                     logfile = {
                         "Hostname": host,
                         "File": file,
@@ -187,7 +187,7 @@ def configure():
     for file in allFiles:
         if ".data.json" in file:
             try:
-                with open(Path(filesPath, file), "r") as dataFile:
+                with open(os.path.join(filesPath, file), "r") as dataFile:
                     contents = dataFile.read()
                     viewFiles.append(json.loads(contents))
             except Exception as E:
@@ -215,7 +215,7 @@ def getFile(name):
     print("Attempting to download file:", name)
     # We do this when saving, so this shouldn't have any ill effects
     name = secure_filename(name)
-    fullPath = Path(filesPath, name)
+    fullPath = os.path.join(filesPath, name)
     if os.path.isfile(fullPath):
         return send_file(fullPath)
     return "What are you doing? Users aren't supposed to be here."
@@ -334,7 +334,7 @@ def loggingData(data=None):
         updateClient(hostname, data["logFile"])
         emit("loggingData", data, to=hostname + "_Logging")
         # Save it
-        path = Path("data", "logs", hostname)
+        path = os.path.join("data", "logs", hostname)
         if not os.path.isdir(path):
             path.mkdir(parents=True)
         logPath = os.path.join(path, data["logFile"])
