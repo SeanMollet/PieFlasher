@@ -66,6 +66,7 @@ def downloadNewFile(fileName):
     if len(server) == 0:
         return
     fullUrl = urljoin(server, "loadFile/" + fileName)
+
     try:
         with requests.get(fullUrl, stream=True) as response:
             outputPath = Path(currentFilePath, fileName)
@@ -76,13 +77,15 @@ def downloadNewFile(fileName):
                     file.write(chunk)
                     # calculate current percentage
                     currentProgress = (i * chunk_size / total_size) * 100
-                    worker_client.sendStatus(
-                        str(currentState.name).capitalize(),
-                        currentFile,
-                        currentProgress,
-                        currentVoltage,
-                        currentVoltageTarget,
-                    )
+                    if i % 10 == 0:
+                        worker_client.sendStatus(
+                            str(currentState.name).capitalize(),
+                            currentFile,
+                            currentProgress,
+                            currentVoltage,
+                            currentVoltageTarget,
+                        )
+                    count += 1
 
         # Delete the currentfile from tmpfs
         if len(currentFile) > 0 and currentFile != fileName:
