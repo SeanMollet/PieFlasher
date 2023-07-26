@@ -15,8 +15,11 @@ fileUpdateFunction = None
 server = "http://10.23.0.10:5000"
 
 sio = socketio.Client()
-sio.connect(server)
-sio.emit("register", hostName)
+
+
+def startup():
+    sio.connect(server)
+    sio.emit("register", hostName)
 
 
 @sio.on("my_pong")
@@ -52,12 +55,8 @@ def serverConnected():
 
 @sio.on("shutdown")
 def shutdown():
-    print("Shutting down")
-    sio.disconnect()
-    global pingThreadContinue, pingThread, shutdownFunc
-    pingThreadContinue = False
-    if pingThread is not None:
-        pingThread.join()
+    print("Shutting down system")
+    disconnect()
     if shutdownFunc is not None:
         shutdownFunc()
 
@@ -78,6 +77,14 @@ def reboot():
 @sio.on("my_response")
 def my_response(data):
     print("Data received:", data)
+
+
+def disconnect():
+    sio.disconnect()
+    global pingThreadContinue, pingThread, shutdownFunc
+    pingThreadContinue = False
+    if pingThread is not None:
+        pingThread.join()
 
 
 def startPing():
@@ -114,7 +121,14 @@ def setShutdown(shutdownFunction: Callable):
 
 
 def sendLogData(logFile, logData):
-    sio.emit("loggingData", {"logFile": os.path.basename(logFile), "logData": logData})
+    sio.emit(
+        "loggingData",
+        {
+            "Hostname": hostName,
+            "logFile": os.path.basename(logFile),
+            "logData": logData,
+        },
+    )
 
 
 def sendStatus(

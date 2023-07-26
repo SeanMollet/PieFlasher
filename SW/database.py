@@ -15,6 +15,7 @@ from time import sleep
 
 logComplete = False
 logThread = None
+logOutput = None
 
 
 def testDir(path) -> bool:
@@ -116,12 +117,13 @@ def followFile(thefile) -> str:
     global logComplete
     while True:
         line = thefile.read(100)
-        if not line:
+        if line:
+            yield line
+        else:
+            # This should finish reading the file and not close until we've been told to AND read everything
             if logComplete:
                 yield None
             sleep(0.1)
-            continue
-        yield line
 
 
 def logReader(logFile: str, updateFunc: Callable) -> None:
@@ -152,6 +154,8 @@ def logReader(logFile: str, updateFunc: Callable) -> None:
             if line is None:
                 # print("Got an empty line.")
                 return
+            if logOutput is not None:
+                logOutput(logFile, line)
             # Done
             values = doneParser.findall(line)
             if values:
@@ -188,3 +192,7 @@ def logReader(logFile: str, updateFunc: Callable) -> None:
 def printLogFileData(logFile: str, updateFunc: Callable) -> None:
     logThread = threading.Thread(target=logReader, args=[logFile, updateFunc])
     logThread.start()
+
+
+def setLogOutput(logOutputter: Callable):
+    logOutput = logOutputter

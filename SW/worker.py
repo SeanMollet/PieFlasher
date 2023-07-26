@@ -14,7 +14,7 @@ from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
 from flash import flashImage, scanChip
-from database import getLogFileName, loggingComplete
+from database import getLogFileName, loggingComplete, setLogOutput
 from utils import isfloat
 from pathlib import Path
 from luma.core.interface.serial import i2c
@@ -235,9 +235,13 @@ def main():
         time.sleep(0.2)
 
 
+def sendLogData(logFile, logData):
+    worker_client.sendLogData(logFile, logData)
+
+
 def logdata(logFile, *args):
     data = "".join(map(str, args)) + "\n"
-    worker_client.sendLogData(logFile, data)
+    sendLogData(logFile, data)
     with open(logFile, "a") as f:
         f.write(data)
 
@@ -296,6 +300,7 @@ def processFlash():
             currentVoltageTarget,
         )
 
+    setLogOutput(sendLogData)
     logFile = getLogFileName(updateStatus)
     print("Logging to:", logFile)
 
@@ -374,11 +379,12 @@ def shutdown():
 
 def sigint_handler(signal, frame):
     print("Shutting down")
-    worker_client.shutdown()
+    worker_client.disconnect()
     sys.exit(0)
 
 
 if __name__ == "__main__":
+    worker_client.startup()
     worker_client.setFileUpdate(updateCurrentFile)
     worker_client.setReboot(reboot)
     worker_client.setShutdown(shutdown)
