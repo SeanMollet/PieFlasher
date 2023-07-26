@@ -24,6 +24,7 @@ import datetime
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from operator import itemgetter
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
@@ -49,9 +50,101 @@ def status(result=""):
     return render_template("status.html", result=result)
 
 
+@app.route("/liveLog/<host>")
+def liveLog(host):
+    pass
+
+
+@app.route("/viewLog/<host>/<path>")
+def viewLog(host, path):
+    host = secure_filename(host)
+    path = secure_filename(path)
+    logPath = os.path.join("data", "logs", host, path)
+    logData = ""
+    with open(logPath, "r") as logFile:
+        logData = logFile.read()
+    return render_template("viewlog.html", logData=logData, logName=path)
+
+
+# def logsHost(host):
+#     flashers = None
+#     global clients
+#     flashers = []
+#     keys = list(clients.keys())
+#     keys.sort()
+#     for client in keys:
+#         flasher = clients[client]
+#         if "Timestamp" in flasher:
+#             lastSeen = time.time() - flasher["Timestamp"]
+#             if lastSeen > 60:
+#                 continue
+#             flasher["LastSeen"] = str(int(lastSeen)) + " Seconds ago"
+#         if "Filename" in flasher and len(flasher["Filename"]) == 0:
+#             flasher["Filename"] = "No file"
+#         flashers.append(flasher)
+#     return render_template("hostlogs.html", flashers=flashers)
+
+
+@app.route("/logs/")
+@app.route("/logs/<host>")
+def logsHost(host=""):
+    if len(host) == 0:
+        flashers = None
+        global clients
+        flashers = []
+        keys = list(clients.keys())
+        keys.sort()
+        for client in keys:
+            flasher = clients[client]
+            if "Timestamp" in flasher:
+                lastSeen = time.time() - flasher["Timestamp"]
+                if lastSeen > 60:
+                    continue
+                flasher["LastSeen"] = str(int(lastSeen)) + " Seconds ago"
+            if "Filename" in flasher and len(flasher["Filename"]) == 0:
+                flasher["Filename"] = "No file"
+            flashers.append(flasher)
+        return render_template("logs.html", flashers=flashers)
+    else:
+        logfiles = []
+        host = secure_filename(host)
+        logFilesPath = os.path.join("data", "logs", host)
+        if os.path.isdir(logFilesPath):
+            files = os.listdir(logFilesPath)
+            for file in files:
+                if file.endswith(".log"):
+                    status = os.stat(Path(logFilesPath, file))
+                    logfile = {
+                        "Hostname": host,
+                        "File": file,
+                        "Size": status.st_size,
+                        "Timestamp": str(
+                            datetime.datetime.fromtimestamp(status.st_mtime)
+                        )[:-7],
+                    }
+                    logfiles.append(logfile)
+        logfiles.sort(key=itemgetter("File"), reverse=True)
+        return render_template("hostlogs.html", logfiles=logfiles)
+
+
 @app.route("/logs/")
 def logs():
-    return render_template("logs.html")
+    flashers = None
+    global clients
+    flashers = []
+    keys = list(clients.keys())
+    keys.sort()
+    for client in keys:
+        flasher = clients[client]
+        if "Timestamp" in flasher:
+            lastSeen = time.time() - flasher["Timestamp"]
+            if lastSeen > 60:
+                continue
+            flasher["LastSeen"] = str(int(lastSeen)) + " Seconds ago"
+        if "Filename" in flasher and len(flasher["Filename"]) == 0:
+            flasher["Filename"] = "No file"
+        flashers.append(flasher)
+    return render_template("logs.html", flashers=flashers)
 
 
 @app.route("/upload/")

@@ -3,4 +3,59 @@
 {% block content %}
 <h1>{% block title %} Flasher Logs {% endblock %}</h1>
 
+{% if flashers is defined %}
+<table border="1" id="flasherLogs">
+    <tr>
+        <th onclick="sortTable('flasherLogs',0)">Hostname</th>
+        <th onclick="sortTable('flasherLogs',1)">IP</th>
+        <th onclick="sortTable('flasherLogs',2)">LastSeen</th>
+        <th onclick="sortTable('flasherLogs',3)">Status</th>
+        <th onclick="sortTable('flasherLogs',4)">File</th>
+        <th onclick="sortTable('flasherLogs',5)">Progress</th>
+        <th onclick="sortTable('flasherLogs',6)">Voltage</th>
+        <th onclick="sortTable('flasherLogs',7)">Recent Log</th>
+        <th onclick="sortTable('flasherLogs',7)">Live Logs</th>
+    </tr>
+    {% for flasher in flashers %} <tr>
+        <td>
+            {{ "<a href='/logs/"|safe + flasher["Hostname"]+"'>"|safe+flasher["Hostname"]+"</a>"|safe}}
+        </td>
+        <td>
+            {{ flasher["IP"] }}
+        </td>
+        <td>
+            {{ flasher["LastSeen"] }}
+        </td>
+        {% if flasher["RecentStatus"] is defined %}
+        <td>
+            {{ printExists(flasher["RecentStatus"]["Status"]) }}
+        </td>
+        <td>
+            {{ printExists(flasher["RecentStatus"]["Filename"]) }}
+        </td>
+        <td>
+            {{ printExists(flasher["RecentStatus"]["Progress"]) }}%
+        </td>
+        <td>
+            {{ printExists(flasher["RecentStatus"]["Voltage"]) }}V
+        </td>
+        {% else %}
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        {% endif %}
+        <td>
+            {% if flasher["RecentLog"] is defined %}
+            {{ "<a
+                href='/viewLog/"|safe + flasher["Hostname"] +"/"+ flasher["RecentLog"] +"'>"|safe+flasher["RecentLog"]+"</a>"|safe}}
+            {% endif %}
+        </td>
+        <td>
+            <a href="/liveLog/{{ flasher[" Hostname"] }}">Live Logs</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
 {% endblock %}

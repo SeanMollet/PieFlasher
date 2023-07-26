@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Flasher Logs {% endblock %}</h1>
+
+{% if logfiles is defined %}
+<table border="1" id="flasherLogs">
+    <tr>
+        <th onclick="sortTable('flasherLogs',0)">Hostname</th>
+        <th onclick="sortTable('flasherLogs',1)">File</th>
+        <th onclick="sortTable('flasherLogs',2)">Size</th>
+        <th onclick="sortTable('flasherLogs',3)">Timestamp</th>
+    </tr>
+    {% for log in logfiles %} <tr>
+        <td>
+            {{ log["Hostname"] }}
+        </td>
+        <td>
+            {{ "<a href='/viewLog/"|safe + log["Hostname"] +"/"+ log["File"] +"'>"|safe+log["File"]+"</a>"|safe}}
+        </td>
+        <td>
+            {{ log["Size"] }}
+        </td>
+        <td>
+            {{ log["Timestamp"] }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
