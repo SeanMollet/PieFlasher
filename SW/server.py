@@ -30,7 +30,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 filesPath = Path("data", "files")
-print("Using", filesPath, "as data path")
+print("Using", os.path.abspath(filesPath), "as data path")
 if not os.path.isdir(filesPath):
     filesPath.mkdir(parents=True)
 clients = {}
