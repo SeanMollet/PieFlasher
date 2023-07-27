@@ -232,7 +232,7 @@ def main():
     startupOver = time.time() + 2
 
     prevStartValue = True
-    # These are split to tighten the loop on the fast timer
+
     while True:
         if currentState == State.STARTUP and time.time() > startupOver:
             currentState = State.IDLE
@@ -245,24 +245,15 @@ def main():
                 currentVoltageTarget,
             )
             break
+        if currentState == State.IDLE or currentState == State.ERROR:
+            gpio.waitSigStart()
+            # Double check (this shouldn't have changed, but just in case)
+            if currentState == State.IDLE or currentState == State.ERROR:
+                currentState = State.LAUNCHING
+                flashThread = threading.Thread(target=processFlash)
+                flashThread.start()
+
         time.sleep(0.2)
-    while True:
-        while True:
-            curStartValue = gpio.getSigStart()
-            if curStartValue == False and prevStartValue == True:
-                if currentState == State.IDLE or currentState == State.ERROR:
-                    currentState = State.LAUNCHING
-                    flashThread = threading.Thread(target=processFlash)
-                    flashThread.start()
-                    break
-
-            prevStartValue = curStartValue
-
-            time.sleep(0.02)
-        # Slow it down and do nothing when we're actively doing stuff
-        # We'll leave here and re-enter the faster loop as soon as the flash is done
-        while currentState != State.IDLE and currentState != State.ERROR:
-            time.sleep(0.2)
 
 
 def sendLogData(logFile, logData):

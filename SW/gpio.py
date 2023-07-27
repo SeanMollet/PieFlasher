@@ -33,6 +33,13 @@ class pi_gpio:
         if self.pins[pin] is not None and self.pins[pin][2] == GPIO.IN:
             return GPIO.input(self.pins[pin][0])
 
+    def waitForEdge(self, pin: str, state: bool) -> None:
+        if self.pins[pin] is not None and self.pins[pin][2] == GPIO.IN:
+            if state:
+                return GPIO.wait_for_edge(self.pins[pin][0], GPIO.RISING)
+            else:
+                return GPIO.wait_for_edge(self.pins[pin][0], GPIO.FALLING)
+
     def defaultPin(self, pin: str):
         if self.pins[pin] is not None:
             GPIO.output(self.pins[pin][0], self.pins[pin][1])
@@ -67,6 +74,9 @@ class pi_gpio:
 
     def holdSignal(self, signal, delay) -> None:
         threading.Thread(target=self.holdSignalWorker, args=[signal, delay]).start()
+
+    def waitSigStart(self) -> None:
+        self.waitForEdge("SIG_START", False)
 
 
 if __name__ == "__main__":
