@@ -4,6 +4,7 @@ from gpio import pi_gpio
 from time import sleep
 import sys
 from utils import isfloat
+from database import flashLogger
 
 gpio = pi_gpio()
 adc = i2cAdc()
@@ -70,7 +71,12 @@ def checkPS():
 
 
 # Set the pot for a specific voltage
-def setVoltage(target: float, validate: bool = True, output: bool = False) -> bool:
+def setVoltage(
+    target: float,
+    validate: bool = True,
+    output: bool = False,
+    logger: flashLogger = None,
+) -> bool:
     # Set the voltage to minimum and disable output before we turn it on
     if validate and target <= maxPwrControlVoltage():
         result = pot.setPot(127)
@@ -82,20 +88,34 @@ def setVoltage(target: float, validate: bool = True, output: bool = False) -> bo
     result = pot.setPot(potValue)
     if not result:
         return False
-    sleep(0.10)
+    sleep(0.25)
     if validate and target <= maxPwrControlVoltage():
         voltage = round(adc.getVoltage(), 2)
         if output:
-            print("Voltage:", voltage)
+            if flashLogger:
+                flashLogger.logData("Voltage:", voltage)
+            else:
+                print("Voltage:", voltage)
         if (
             target * (1 - voltageAccuracyThreshold)
             <= voltage
             <= target * (1 + voltageAccuracyThreshold)
         ):
             return True
-        print(
-            "Voltage inaccurate! Check calibration. Target:", target, "Actual:", voltage
-        )
+        if flashLogger:
+            flashLogger.logData(
+                "Voltage inaccurate! Check calibration. Target:",
+                target,
+                "Actual:",
+                voltage,
+            )
+        else:
+            print(
+                "Voltage inaccurate! Check calibration. Target:",
+                target,
+                "Actual:",
+                voltage,
+            )
         return False
     return True
 
