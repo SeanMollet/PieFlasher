@@ -381,6 +381,13 @@ def processFlash():
         gpio.holdSignal("SIG_NG", 1)
 
     currentState = State.IDLE
+    workerClient.sendStatus(
+        str(currentState.name).capitalize(),
+        currentFile,
+        0,
+        currentVoltage,
+        currentVoltageTarget,
+    )
 
 
 def reboot():
