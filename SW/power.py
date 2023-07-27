@@ -60,7 +60,7 @@ def checkPS():
         pot.setPot(potValue)
         sleep(0.1)
         voltage = round(adc.getVoltage(), 2)
-        print("Target:", target, "Act:", voltage, end="")
+        print("Target:", target, "Act:", voltage,"Pot:",potValue, end="")
         if (
             target * (1 - voltageAccuracyThreshold)
             <= voltage
