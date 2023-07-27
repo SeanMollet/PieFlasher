@@ -24,7 +24,7 @@ def scanChip(logFile):
     # Scan for the chip
     # This may return 1, but we just want the logfile anyway
     try:
-        check_output([flashrom, "-p", spiArgs, "-o", logFile])
+        check_output([flashrom, "-p", spiArgs, "-o", logFile, "-a"])
     except CalledProcessError:
         pass
 
@@ -55,7 +55,7 @@ def flashImage(
     try:
         if eraseMode:
             check_output(
-                [flashrom, "-p", spiArgs, "-o", logFile, "-c", "-a", chip, "-E"]
+                [flashrom, "-p", spiArgs, "-o", logFile, "-a", "-c", chip, "-E"]
             )
         else:
             check_output(

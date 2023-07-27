@@ -334,7 +334,7 @@ def processFlash():
 
     enablePower()
     logFile.logData("Scanning chip")
-    chip, size = scanChip(logFile)
+    chip, size = scanChip(logFile.getPath())
 
     if currentFile == "erase":
         logFile.logData("Launching erase command")
@@ -345,7 +345,7 @@ def processFlash():
 
     result = None
     if currentFile == "erase":
-        result = flashImage(None, logFile, True, chip, size)
+        result = flashImage(None, logFile.getPath(), True, chip, size)
     else:
         if not os.path.isfile(fullPath):
             logFile.logData("File " + currentFile + " not found. Aborting flash.")
@@ -353,7 +353,7 @@ def processFlash():
         else:
             with open(fullPath, "rb") as imageFile:
                 data = imageFile.read()
-                result = flashImage(data, logFile, False, chip, size)
+                result = flashImage(data, logFile.getPath(), False, chip, size)
     if result:
         logFile.logData("Success")
     else:
@@ -364,6 +364,7 @@ def processFlash():
 
     bar.finish()
     currentProgress = 0
+    logFile.loggingComplete()
 
     # This is down here so we don't tell the machine we're done until we've de-powered the chip
     if result:
