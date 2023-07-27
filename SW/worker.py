@@ -116,7 +116,7 @@ def downloadNewFile(fileName):
 
 def updateCurrentFile(fileName, voltage):
     global currentState, currentProgress, currentFile, currentVoltage, currentVoltageTarget
-    while currentState != State.IDLE:
+    while currentState != State.IDLE and currentState != State.ERROR:
         print("Waiting for Idle before starting download")
         sleep(1)
     currentVoltageTarget = voltage
@@ -219,7 +219,7 @@ def show_display(device):
     lockI2C(lambda: device.display(background.convert(device.mode)))
 
 
-def buttonCallback():
+def buttonCallback(channel):
     global currentState, flashThread
     if currentState == State.IDLE or currentState == State.ERROR:
         currentState = State.LAUNCHING
