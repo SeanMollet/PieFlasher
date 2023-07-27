@@ -65,8 +65,8 @@ def liveLog(host):
     ):
         logFile = clients[host]["RecentLog"]
         logPath = os.path.join(logsPath, host, logFile)
-        with open(logPath, "r") as logFile:
-            logData = logFile.read()
+        with open(logPath, "r") as logFileOpen:
+            logData = logFileOpen.read()
 
     return render_template(
         "livelog.html",
