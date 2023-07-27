@@ -29,6 +29,16 @@
                 }}">Flash
                 {{ file["voltage"] }}V</button>
         </td>
+        {% if file["filename"] == "erase" %}
+        <td>
+            <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"3.3)" }}">Erase
+                3.3V</button>
+        </td>
+        <td>
+            <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"1.8)" }}">Erase
+                1.8V</button>
+        </td>
+        {% else %}
         <td>
             <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"3.3)" }}">Flash
                 3.3V</button>
@@ -37,6 +47,7 @@
             <button type="Button" onclick="{{ " selectFlash('"|safe+ file["filename"]+"',"|safe+"1.8)" }}">Flash
                 1.8V</button>
         </td>
+        {% endif %}
         <td>
 
             <input type="text" placeholder="1.8" size="10" id="otherVoltage{{ loop.index }}" />
