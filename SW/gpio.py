@@ -2,6 +2,7 @@
 import RPi.GPIO as GPIO
 import threading
 from time import sleep
+from typing import Callable
 
 
 class pi_gpio:
@@ -9,12 +10,12 @@ class pi_gpio:
         GPIO.setmode(GPIO.BCM)
         # ("Pin name", GPIO #, Initial value)
         self.pins = {}
-        self.pins["SIG_NG"] = (22, True, GPIO.OUT)
-        self.pins["SIG_OK"] = (23, True, GPIO.OUT)
-        self.pins["SIG_BUSY"] = (24, True, GPIO.OUT)
-        self.pins["SIG_START"] = (21, True, GPIO.IN)
-        self.pins["PS_EN"] = (19, False, GPIO.OUT)
-        self.pins["PWR_EN"] = (20, True, GPIO.OUT)
+        self.pins["SIG_NG"] = (22, True, GPIO.OUT, None)
+        self.pins["SIG_OK"] = (23, True, GPIO.OUT, None)
+        self.pins["SIG_BUSY"] = (24, True, GPIO.OUT, None)
+        self.pins["SIG_START"] = (21, True, GPIO.IN, None)
+        self.pins["PS_EN"] = (19, False, GPIO.OUT, None)
+        self.pins["PWR_EN"] = (20, True, GPIO.OUT, None)
 
         for name in self.pins:
             pin = self.pins[name]
@@ -39,6 +40,34 @@ class pi_gpio:
                 return GPIO.wait_for_edge(self.pins[pin][0], GPIO.RISING)
             else:
                 return GPIO.wait_for_edge(self.pins[pin][0], GPIO.FALLING)
+
+    def callBackDispatcher(self, channel):
+        for pin in self.pins:
+            if pin[0] == channel and pin[3] is not None:
+                pin[3]()
+
+    def callOnEdge(self, pin: str, state: bool, callback: Callable) -> None:
+        if self.pins[pin] is not None and self.pins[pin][2] == GPIO.IN:
+            self.pins[pin] = (
+                self.pins[pin][0],
+                self.pins[pin][1],
+                self.pins[pin][2],
+                callback,
+            )
+            if state:
+                GPIO.add_event_detect(
+                    self.pins[pin][0],
+                    GPIO.RISING,
+                    callback=self.callBackDispatcher,
+                    bouncetime=300,
+                )
+            else:
+                GPIO.add_event_detect(
+                    self.pins[pin][0],
+                    GPIO.FALLING,
+                    callback=self.callBackDispatcher,
+                    bouncetime=300,
+                )
 
     def defaultPin(self, pin: str):
         if self.pins[pin] is not None:
@@ -77,6 +106,9 @@ class pi_gpio:
 
     def waitSigStart(self) -> None:
         self.waitForEdge("SIG_START", False)
+
+    def callOnSigStart(self, callback: Callable) -> None:
+        self.callOnEdge("SIG_START", False, callback)
 
 
 if __name__ == "__main__":

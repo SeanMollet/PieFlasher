@@ -56,8 +56,6 @@ currentVoltage = 0.0
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
-oledThread = None
-oledThreadContinue = True
 
 
 def downloadNewFile(fileName):
@@ -221,10 +219,12 @@ def show_display(device):
     lockI2C(lambda: device.display(background.convert(device.mode)))
 
 
-def oledThreadRunner():
-    while oledThreadContinue:
-        show_display(device)
-        time.sleep(0.2)
+def buttonCallback():
+    global currentState, flashThread
+    if currentState == State.IDLE or currentState == State.ERROR:
+        currentState = State.LAUNCHING
+        flashThread = threading.Thread(target=processFlash)
+        flashThread.start()
 
 
 def main():
@@ -244,15 +244,8 @@ def main():
                 currentVoltage,
                 currentVoltageTarget,
             )
-            break
-        if currentState == State.IDLE or currentState == State.ERROR:
-            gpio.waitSigStart()
-            # Double check (this shouldn't have changed, but just in case)
-            if currentState == State.IDLE or currentState == State.ERROR:
-                currentState = State.LAUNCHING
-                flashThread = threading.Thread(target=processFlash)
-                flashThread.start()
 
+        show_display(device)
         time.sleep(0.2)
 
 
@@ -400,10 +393,6 @@ def systemShutdown():
 def sigint_handler(signal, frame):
     print("Shutting down")
     workerClient.disconnect()
-    oledThreadContinue = False
-    if oledThread != None:
-        oledThread.join()
-
     sys.exit(0)
 
 
@@ -437,8 +426,7 @@ if __name__ == "__main__":
         serial = i2c(port=1, address=0x3C)
         device = ssd1306(serial, rotate=rotation)
         adc = i2cAdc()
-        oledThread = threading.Thread(target=oledThreadRunner)
-        oledThread.start()
+        gpio.callOnSigStart(buttonCallback)
         main()
 
     except KeyboardInterrupt:
