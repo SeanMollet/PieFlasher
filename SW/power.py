@@ -92,8 +92,8 @@ def setVoltage(
     if validate and target <= maxPwrControlVoltage():
         voltage = round(adc.getVoltage(), 2)
         if output:
-            if flashLogger:
-                flashLogger.logData("Voltage:", voltage)
+            if logger:
+                logger.logData("Voltage:", voltage)
             else:
                 print("Voltage:", voltage)
         if (
@@ -102,8 +102,8 @@ def setVoltage(
             <= target * (1 + voltageAccuracyThreshold)
         ):
             return True
-        if flashLogger:
-            flashLogger.logData(
+        if logger:
+            logger.logData(
                 "Voltage inaccurate! Check calibration. Target:",
                 target,
                 "Actual:",
@@ -130,8 +130,8 @@ def enablePower(logFile: flashLogger = None):
     gpio.setPwrEn(True)
     sleep(0.2)  # Make sure the supply is stable
     voltage = adc.getVoltage()
-    if flashLogger:
-        flashLogger.logData("Voltage before flashing:" + str(voltage))
+    if logFile:
+        logFile.logData("Voltage before flashing:" + str(voltage))
     else:
         print("Voltage before flashing:" + str(voltage))
 
