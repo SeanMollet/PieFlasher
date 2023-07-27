@@ -20,6 +20,7 @@ def maxPwrControlVoltage():
 
 
 def getPotForVoltage(target):
+    global stepOffset
     FirstUsefulValue = 45
     Slope = 0.045977678
     return int((5 - target) / (Slope)) + FirstUsefulValue + stepOffset
@@ -57,7 +58,7 @@ def checkPS():
     for target in targets:
         potValue = getPotForVoltage(target)
         pot.setPot(potValue)
-        sleep(0.1)
+        sleep(0.2)
         voltage = round(adc.getVoltage(), 2)
         print("Target:", target, "Act:", voltage, end="")
         if (
