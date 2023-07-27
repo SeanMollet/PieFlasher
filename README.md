@@ -32,7 +32,7 @@ sudo reboot
 ### Install necessary tools
 PieFlasher pre-requisites
 ```
-sudo apt install git python3-pip i2c-tools 
+sudo apt install git python3-pip i2c-tools python3-sphinx
 ```
 
 Luma pre-requisites
