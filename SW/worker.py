@@ -56,6 +56,8 @@ currentVoltage = 0.0
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
+oledThread = None
+oledThreadContinue = True
 
 
 def downloadNewFile(fileName):
@@ -219,11 +221,18 @@ def show_display(device):
     lockI2C(lambda: device.display(background.convert(device.mode)))
 
 
+def oledThreadRunner():
+    while oledThreadContinue:
+        show_display(device)
+        time.sleep(0.2)
+
+
 def main():
     global imageChanged, imageCount, currentState, currentFile, currentProgress, currentVoltage, currentVoltageTarget
     startupOver = time.time() + 2
 
     prevStartValue = True
+    # These are split to tighten the loop on the fast timer
     while True:
         if currentState == State.STARTUP and time.time() > startupOver:
             currentState = State.IDLE
@@ -235,19 +244,25 @@ def main():
                 currentVoltage,
                 currentVoltageTarget,
             )
-
-        curStartValue = gpio.getSigStart()
-        if curStartValue == False and prevStartValue == True:
-            if currentState == State.IDLE:
-                currentState = State.LAUNCHING
-                flashThread = threading.Thread(target=processFlash)
-                flashThread.start()
-
-        prevStartValue = curStartValue
-
-        show_display(device)
-
+            break
         time.sleep(0.2)
+    while True:
+        while True:
+            curStartValue = gpio.getSigStart()
+            if curStartValue == False and prevStartValue == True:
+                if currentState == State.IDLE or currentState == State.ERROR:
+                    currentState = State.LAUNCHING
+                    flashThread = threading.Thread(target=processFlash)
+                    flashThread.start()
+                    break
+
+            prevStartValue = curStartValue
+
+            time.sleep(0.02)
+        # Slow it down and do nothing when we're actively doing stuff
+        # We'll leave here and re-enter the faster loop as soon as the flash is done
+        while currentState != State.IDLE and currentState != State.ERROR:
+            time.sleep(0.2)
 
 
 def sendLogData(logFile, logData):
@@ -394,6 +409,10 @@ def systemShutdown():
 def sigint_handler(signal, frame):
     print("Shutting down")
     workerClient.disconnect()
+    oledThreadContinue = False
+    if oledThread != None:
+        oledThread.join()
+
     sys.exit(0)
 
 
@@ -427,6 +446,9 @@ if __name__ == "__main__":
         serial = i2c(port=1, address=0x3C)
         device = ssd1306(serial, rotate=rotation)
         adc = i2cAdc()
+        oledThread = threading.Thread(target=oledThreadRunner)
+        oledThread.start()
         main()
+
     except KeyboardInterrupt:
         sigint_handler()
