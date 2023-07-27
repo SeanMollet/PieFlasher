@@ -323,7 +323,7 @@ def processFlash():
         )
 
     logFile = flashLogger(updateStatus, sendLogData)
-    print("Logging to:", logFile)
+    print("Logging to:", logFile.getFilename())
 
     # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
     # Can't go closed loop, but that's not really an issue with a 5V chip

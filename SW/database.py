@@ -130,6 +130,9 @@ class flashLogger:
         self.logThread = threading.Thread(target=self.logReader)
         self.logThread.start()
 
+    def getFilename(self):
+        return os.path.basename(self.logFilePath)
+
     def getPath(self):
         return self.logFilePath
 
