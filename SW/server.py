@@ -193,7 +193,7 @@ def verifiedFlashSelected():
 def configure():
     allFiles = os.listdir(filesPath)
     viewFiles = [
-        {"filename": "erase", "desc": "Erase flash chip", "size": 0, "voltage": 3.3}
+        {"filename": "erase", "desc": "Erase flash chip", "size": 0, "voltage": "3.3"}
     ]
     for file in allFiles:
         if ".data.json" in file:
