@@ -360,7 +360,6 @@ def processFlash():
         logFile.logData("Error performing operation, check logfile")
 
     flashComplete = True
-    logFile.loggingComplete()
     disablePower()
 
     bar.finish()

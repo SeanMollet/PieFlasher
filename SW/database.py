@@ -8,6 +8,7 @@ from typing import Callable
 from datetime import datetime
 from time import sleep
 from pathlib import Path
+import psutil
 
 # Why JSON?
 # We could put this stuff in an actual db, SQLlite, MySQL, etc..
@@ -130,7 +131,7 @@ class flashLogger:
         self.logThread = threading.Thread(target=self.logReader)
         self.logThread.start()
 
-    def loggingComplete(self):
+    def shutdownLogging(self):
         self.logComplete = True
         if self.logThread is not None:
             self.logThread.join()
