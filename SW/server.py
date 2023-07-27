@@ -72,7 +72,7 @@ def liveLog(host):
         "livelog.html",
         hostName=host,
         logData=logData,
-        logFile=logFile,
+        logFile=" - " + logFile,
     )
 
 
