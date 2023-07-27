@@ -347,7 +347,7 @@ def processFlash():
     chip = ""
     size = 0
     scanCount = 0
-    while chip == "" and scanCount < 10:
+    while chip == "" and scanCount < 50:
         chip, size = scanChip(logFile.getPath())
         sleep(0.2)
         scanCount += 1
