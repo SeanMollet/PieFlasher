@@ -5,7 +5,7 @@ import shutil
 import re
 from subprocess import check_output, CalledProcessError
 
-spiArgs = "linux_spi:dev=/dev/spidev0.0,spispeed=10000"
+spiArgs = "linux_spi:dev=/dev/spidev0.0,spispeed=4000"
 flashrom = shutil.which("flashrom")
 
 
