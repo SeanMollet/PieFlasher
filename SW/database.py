@@ -160,6 +160,7 @@ class flashLogger:
     def logReader(self) -> None:
         readParser = re.compile(r"\[(R)EAD\]\s*(\d+)%")
         verifyParser = re.compile(r"verify_range")
+        eraseParser = re.compile(r"erase_write")
         doneParser = re.compile(r"Erase/write done")
         posParser = re.compile(r"([EWS])\(.*?:([0-9a-f]*)")
         # Wait for the file to be created
@@ -207,6 +208,12 @@ class flashLogger:
                 if values:
                     # print("Found a verify:" + line)
                     self.updateFunc(0, "V")
+                    continue
+                # Erasing
+                values = eraseParser.findall(line)
+                if values:
+                    # print("Found an erase:" + line)
+                    self.updateFunc(0, "E")
                     continue
                 values = posParser.findall(line)
                 if len(values) > 0:
