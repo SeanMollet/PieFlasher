@@ -56,6 +56,7 @@ currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
 flashComplete = True
+verifyReadMode = False
 
 
 def downloadNewFile(fileName):
@@ -254,7 +255,7 @@ def sendLogData(logFile, logData):
 
 
 def processFlash():
-    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete
+    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete, verifyReadMode
     flashComplete = False
 
     gpio.setSigBusy(False)
@@ -279,21 +280,29 @@ def processFlash():
         widgets=widgets,
     )
 
+    # The new flashrom sends [READ] messages while in verify mode
+    # This keeps us sending "Verify" and makes progress work
+    verifyReadMode = False
+
     # There's a race condition here where the flash takes place so fast that we're out of the routine
     # Before we've read enough logfile to realize in the states
     def updateStatus(pos, mode):
-        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete
+        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete, verifyReadMode
         # Don't send the state if we've lost the race. Logs get sent elsewhere
         if not flashComplete:
             task = "Idle"
-            if mode == "R":
+            if mode == "R" and not verifyReadMode:
                 currentState = State.READING
+                currentProgress = pos
                 task = "Reading"
             elif mode == "W":
                 currentState = State.FLASHING
+                currentProgress = int((pos / fileSize) * 100)
                 task = "Flashing"
-            elif mode == "V":
+            elif mode == "V" or (mode == "R" and verifyReadMode):
+                verifyReadMode = True
                 currentState = State.VERIFYING
+                currentProgress = pos
                 task = "Verifying"
             elif mode == "E":
                 currentState = State.ERASING
@@ -302,8 +311,8 @@ def processFlash():
                 currentState = State.IDLE
                 task = "Done"
 
+            prevMode = mode
             bar.update(pos, task=task)
-            currentProgress = int((pos / fileSize) * 100)
             workerClient.sendStatus(
                 str(currentState.name).capitalize(),
                 currentFile,
