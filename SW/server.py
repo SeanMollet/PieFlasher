@@ -57,16 +57,23 @@ def liveLog(host):
     global clients
     host = secure_filename(host)
     logData = ""
+    logFile = ""
     if (
         host in clients
         and "RecentLog" in clients[host]
         and len(clients[host]["RecentLog"]) > 0
     ):
-        logPath = os.path.join(logsPath, host, clients[host]["RecentLog"])
+        logFile = clients[host]["RecentLog"]
+        logPath = os.path.join(logsPath, host, logFile)
         with open(logPath, "r") as logFile:
             logData = logFile.read()
 
-    return render_template("livelog.html", hostName=host, logData=logData)
+    return render_template(
+        "livelog.html",
+        hostName=host,
+        logData=logData,
+        logFile=logFile,
+    )
 
 
 @app.route("/viewLog/<host>/<path>")
