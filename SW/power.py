@@ -58,7 +58,7 @@ def checkPS():
     for target in targets:
         potValue = getPotForVoltage(target)
         pot.setPot(potValue)
-        sleep(0.2)
+        sleep(0.1)
         voltage = round(adc.getVoltage(), 2)
         print("Target:", target, "Act:", voltage, end="")
         if (

@@ -344,30 +344,40 @@ def processFlash():
 
     enablePower()
     logFile.logData("Scanning chip")
-    chip, size = scanChip(logFile.getPath())
+    chip = ""
+    size = 0
+    scanCount = 0
+    while chip == "" and scanCount < 10:
+        chip, size = scanChip(logFile.getPath())
+        sleep(0.2)
+        scanCount += 1
+    if len(chip) > 0:
+        logFile.logData("Found chip:", chip)
 
-    if currentFile == "erase":
-        logFile.logData("Launching erase command")
-        fileSize = size * 1024
-        bar.max_value = fileSize
-    else:
-        logFile.logData("Launching flash command for:", currentFile)
-
-    result = None
-    if currentFile == "erase":
-        result = flashImage(None, logFile.getPath(), True, chip, size)
-    else:
-        if not os.path.isfile(fullPath):
-            logFile.logData("File " + currentFile + " not found. Aborting flash.")
-            result = False
+        if currentFile == "erase":
+            logFile.logData("Launching erase command")
+            fileSize = size * 1024
+            bar.max_value = fileSize
         else:
-            with open(fullPath, "rb") as imageFile:
-                data = imageFile.read()
-                result = flashImage(data, logFile.getPath(), False, chip, size)
-    if result:
-        logFile.logData("Success")
+            logFile.logData("Launching flash command for:", currentFile)
+
+        result = None
+        if currentFile == "erase":
+            result = flashImage(None, logFile.getPath(), True, chip, size)
+        else:
+            if not os.path.isfile(fullPath):
+                logFile.logData("File " + currentFile + " not found. Aborting flash.")
+                result = False
+            else:
+                with open(fullPath, "rb") as imageFile:
+                    data = imageFile.read()
+                    result = flashImage(data, logFile.getPath(), False, chip, size)
+        if result:
+            logFile.logData("Success")
+        else:
+            logFile.logData("Error performing operation, check logfile")
     else:
-        logFile.logData("Error performing operation, check logfile")
+        logFile.logData("No chip found, aborting.")
 
     flashComplete = True
     disablePower()
