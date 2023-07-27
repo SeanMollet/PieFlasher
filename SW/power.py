@@ -105,7 +105,7 @@ def disablePower():
 
 def enablePower():
     gpio.setPsEn(True)
-    sleep(0.05)  # Make sure the supply is stable
+    sleep(0.1)  # Make sure the supply is stable
     gpio.setPwrEn(True)
 
 
