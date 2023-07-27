@@ -56,6 +56,7 @@ currentVoltage = 0.0
 currentVoltageTarget = 0.0
 fileScrollPos = 0
 fileScrollBack = False
+flashComplete = True
 
 
 def downloadNewFile(fileName):
@@ -260,7 +261,8 @@ def logdata(logFile, *args):
 
 
 def processFlash():
-    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, currentEraseMode
+    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, currentEraseMode, flashComplete
+    flashComplete = False
 
     gpio.setSigBusy(False)
 
@@ -284,34 +286,38 @@ def processFlash():
         widgets=widgets,
     )
 
+    # There's a race condition here where the flash takes place so fast that we're out of the routine
+    # Before we've read enough logfile to realize in the states
     def updateStatus(pos, mode):
-        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget
-        task = "Idle"
-        if mode == "R":
-            currentState = State.READING
-            task = "Reading"
-        elif mode == "W":
-            currentState = State.FLASHING
-            task = "Flashing"
-        elif mode == "V":
-            currentState = State.VERIFYING
-            task = "Verifying"
-        elif mode == "E":
-            currentState = State.ERASING
-            task = "Erasing"
-        elif mode == "D":
-            currentState = State.IDLE
-            task = "Done"
+        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete
+        # Don't send the state if we've lost the race. Logs get sent elsewhere
+        if not flashComplete:
+            task = "Idle"
+            if mode == "R":
+                currentState = State.READING
+                task = "Reading"
+            elif mode == "W":
+                currentState = State.FLASHING
+                task = "Flashing"
+            elif mode == "V":
+                currentState = State.VERIFYING
+                task = "Verifying"
+            elif mode == "E":
+                currentState = State.ERASING
+                task = "Erasing"
+            elif mode == "D":
+                currentState = State.IDLE
+                task = "Done"
 
-        bar.update(pos, task=task)
-        currentProgress = int((pos / fileSize) * 100)
-        workerClient.sendStatus(
-            str(currentState.name).capitalize(),
-            currentFile,
-            currentProgress,
-            currentVoltage,
-            currentVoltageTarget,
-        )
+            bar.update(pos, task=task)
+            currentProgress = int((pos / fileSize) * 100)
+            workerClient.sendStatus(
+                str(currentState.name).capitalize(),
+                currentFile,
+                currentProgress,
+                currentVoltage,
+                currentVoltageTarget,
+            )
 
     setLogOutput(sendLogData)
     logFile = getLogFileName(updateStatus)
@@ -360,10 +366,12 @@ def processFlash():
     else:
         logdata(logFile, "Error performing operation, check logfile")
 
+    flashComplete = True
     loggingComplete()
     disablePower()
 
     bar.finish()
+    currentProgress = 0
 
     # This is down here so we don't tell the machine we're done until we've de-powered the chip
     if result:
