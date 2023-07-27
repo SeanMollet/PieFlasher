@@ -114,7 +114,7 @@ def enablePower():
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if isfloat(sys.argv[1]):
-            setVoltage(float(sys.argv[1], True, False))
+            setVoltage(float(sys.argv[1]), True, False)
             gpio.setPwrEn(True)
         elif sys.argv[1].lower() == "off":
             gpio.setPwrEn(False)
