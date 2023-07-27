@@ -125,10 +125,15 @@ def disablePower():
     gpio.setPsEn(False)
 
 
-def enablePower():
+def enablePower(logFile: flashLogger = None):
     gpio.setPsEn(True)
-    sleep(0.1)  # Make sure the supply is stable
     gpio.setPwrEn(True)
+    sleep(0.2)  # Make sure the supply is stable
+    voltage = adc.getVoltage()
+    if flashLogger:
+        flashLogger.logData("Voltage before flashing:" + str(voltage))
+    else:
+        print("Voltage before flashing:" + str(voltage))
 
 
 if __name__ == "__main__":
