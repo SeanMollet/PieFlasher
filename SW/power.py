@@ -4,11 +4,13 @@ from gpio import pi_gpio
 from time import sleep
 import sys
 from utils import isfloat
-from database import flashLogger
+from database import flashLogger, getconfig
 
 gpio = pi_gpio()
 adc = i2cAdc()
 pot = i2cPot()
+
+stepOffset = getconfig("VoltageRegulatorAdjustment")
 
 voltageAccuracyThreshold = 0.05
 
@@ -20,7 +22,7 @@ def maxPwrControlVoltage():
 def getPotForVoltage(target):
     FirstUsefulValue = 45
     Slope = 0.045977678
-    return int((5 - target) / (Slope)) + FirstUsefulValue
+    return int((5 - target) / (Slope)) + FirstUsefulValue + stepOffset
 
 
 # If your voltages aren't quite accurate, run this, delete the first rows that are all 5v

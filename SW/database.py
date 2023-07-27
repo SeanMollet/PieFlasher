@@ -66,7 +66,11 @@ if not os.path.isdir(confDir):
 
 
 def getDefaultConfig():
-    return {"Server": "http://10.23.0.10:5000", "Rotation": 0}
+    return {
+        "Server": "http://10.23.0.10:5000",
+        "Rotation": 0,
+        "VoltageRegulatorAdjustment": 0,
+    }
 
 
 def getConfigFilePath():
