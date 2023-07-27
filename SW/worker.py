@@ -14,7 +14,7 @@ from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
 from flash import flashImage, scanChip
-from database import getLogFileName, loggingComplete, setLogOutput, getconfig
+from database import flashLogger, getconfig
 from utils import isfloat
 from pathlib import Path
 from luma.core.interface.serial import i2c
@@ -253,12 +253,6 @@ def sendLogData(logFile, logData):
     workerClient.sendLogData(logFile, logData)
 
 
-def logdata(logFile, *args):
-    data = "".join(map(str, args)) + "\n"
-    with open(logFile, "a") as f:
-        f.write(data)
-
-
 def processFlash():
     global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete
     flashComplete = False
@@ -318,17 +312,16 @@ def processFlash():
                 currentVoltageTarget,
             )
 
-    setLogOutput(sendLogData)
-    logFile = getLogFileName(updateStatus)
+    logFile = flashLogger(updateStatus, sendLogData)
     print("Logging to:", logFile)
 
     # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
     # Can't go closed loop, but that's not really an issue with a 5V chip
-    logdata(logFile, "Setting voltage to:" + str(currentVoltageTarget))
+    logFile.logData("Setting voltage to:" + str(currentVoltageTarget))
     if currentVoltageTarget < maxPwrControlVoltage():
         result = setVoltage(currentVoltageTarget, True, False)
         if not result:
-            logdata(logFile, "Unable to set requested voltage. Aborting.")
+            logFile.logData("Unable to set requested voltage. Aborting.")
             disablePower()
             currentState = State.ERROR
             gpio.setSigBusy(True)
@@ -340,33 +333,34 @@ def processFlash():
     bar.start()
 
     enablePower()
+    logFile.logData("Scanning chip")
+    chip, size = scanChip(logFile)
 
     if currentFile == "erase":
-        logdata(logFile, "Launching erase command")
-        chip, size = scanChip(logFile)
+        logFile.logData("Launching erase command")
         fileSize = size * 1024
         bar.max_value = fileSize
     else:
-        logdata(logFile, "Launching flash command for:", currentFile)
+        logFile.logData("Launching flash command for:", currentFile)
 
     result = None
     if currentFile == "erase":
         result = flashImage(None, logFile, True, chip, size)
     else:
         if not os.path.isfile(fullPath):
-            logdata(logFile, "File " + currentFile + " not found. Aborting flash.")
+            logFile.logData("File " + currentFile + " not found. Aborting flash.")
             result = False
         else:
             with open(fullPath, "rb") as imageFile:
                 data = imageFile.read()
-                result = flashImage(data, logFile, False)
+                result = flashImage(data, logFile, False, chip, size)
     if result:
-        logdata(logFile, "Success")
+        logFile.logData("Success")
     else:
-        logdata(logFile, "Error performing operation, check logfile")
+        logFile.logData("Error performing operation, check logfile")
 
     flashComplete = True
-    loggingComplete()
+    logFile.loggingComplete()
     disablePower()
 
     bar.finish()

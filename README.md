@@ -59,10 +59,11 @@ If all is working correctly, you'll see:
 
 ### Download and build flashrom
 
+By default, flashrom overwrites log files. This isn't a desirable behavior for us, so I've made a change to my version. I'll PR it upstream, but for now, use mine.
+
 ```
-git clone https://github.com/flashrom/flashrom
+git clone https://github.com/SeanMollet/flashrom
 cd flashrom
-git checkout v.1.3.0
 
 make -j 4
 sudo make install

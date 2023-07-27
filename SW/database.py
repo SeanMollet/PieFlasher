@@ -14,10 +14,6 @@ from pathlib import Path
 # But, there's really no need since it's an embedded tool.
 # Being able to easily view/edit/copy the JSON is more valuable
 
-logComplete = False
-logThread = None
-logOutput = None
-
 loadedConfig = None
 
 
@@ -122,105 +118,97 @@ def getconfig(key: str):
     return ""
 
 
-def getLogFileName(updateFunc: Callable) -> str:
-    global logComplete
+class flashLogger:
+    def __init__(self, updateFunc: Callable, logOutput: Callable = None) -> None:
+        self.logComplete = False
+        self.filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
+        self.logFilePath = os.path.join(logDir, self.filename)
+        self.logComplete = False
+        self.updateFunc = updateFunc
+        self.logOutput = logOutput
 
-    loggingComplete()
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
-    logFilePath = os.path.join(logDir, filename)
-    logComplete = False
-    printLogFileData(logFilePath, updateFunc)
-    return logFilePath
+        self.logThread = threading.Thread(target=self.logReader)
+        self.logThread.start()
 
+    def loggingComplete(self):
+        self.logComplete = True
+        if self.logThread is not None:
+            self.logThread.join()
 
-def loggingComplete():
-    global logComplete
-    logComplete = True
-    if logThread is not None:
-        logThread.join()
+    def logData(self, *args):
+        data = "".join(map(str, args)) + "\n"
+        with open(self.logFilePath, "a") as f:
+            f.write(data)
 
+    def followFile(self, thefile) -> str:
+        while True:
+            line = thefile.read(100)
+            if line:
+                yield line
+            else:
+                # This should finish reading the file and not close until we've been told to AND read everything
+                if self.logComplete:
+                    yield None
+                sleep(0.1)
 
-def followFile(thefile) -> str:
-    global logComplete
-    while True:
-        line = thefile.read(100)
-        if line:
-            yield line
-        else:
-            # This should finish reading the file and not close until we've been told to AND read everything
-            if logComplete:
-                yield None
+    def logReader(self) -> None:
+        readParser = re.compile(r"Reading old flash chip contents")
+        verifyParser = re.compile(r"Verifying flash")
+        doneParser = re.compile(r"Erase/write done")
+        posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
+        # Wait for the file to be created
+        # print("Waiting for log file", logFile)
+        limit = 10 * 300
+        checks = 0
+        while checks < limit:
+            if os.path.isfile(self.logFilePath):
+                break
+            checks += 1
             sleep(0.1)
 
+        if checks >= limit:
+            print("Timed out waiting for logfile")
+            return
 
-def logReader(logFile: str, updateFunc: Callable) -> None:
-    readParser = re.compile(r"Reading old flash chip contents")
-    verifyParser = re.compile(r"Verifying flash")
-    doneParser = re.compile(r"Erase/write done")
-    posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
-    # Wait for the file to be created
-    # print("Waiting for log file", logFile)
-    limit = 10 * 300
-    checks = 0
-    while checks < limit:
-        if os.path.isfile(logFile):
-            break
-        checks += 1
-        sleep(0.1)
+        # print("Found log file, opening")
+        with open(self.logFilePath, "r") as logfile:
+            os.set_blocking(logfile.fileno(), False)
+            loglines = self.followFile(logfile)
+            for line in loglines:
+                # Follow sends us a None when we're done
+                if line is None:
+                    # print("Got an empty line.")
+                    return
+                if self.logOutput is not None:
+                    self.logOutput(self.filename, line)
+                # Done
+                values = doneParser.findall(line)
+                if values:
+                    # print("Found a done.")
+                    self.updateFunc(100, "D")
+                    return
+                # Reading
+                values = readParser.findall(line)
+                if values:
+                    # print("Found a read:" + line)
+                    self.updateFunc(0, "R")
+                    continue
+                # Verifying
+                values = verifyParser.findall(line)
+                if values:
+                    # print("Found a verify:" + line)
+                    self.updateFunc(0, "V")
+                    continue
 
-    if checks >= limit:
-        print("Timed out waiting for logfile")
-        return
-
-    # print("Found log file, opening")
-    with open(logFile, "r") as logfile:
-        os.set_blocking(logfile.fileno(), False)
-        loglines = followFile(logfile)
-        for line in loglines:
-            # Follow sends us a None when we're done
-            if line is None:
-                # print("Got an empty line.")
-                return
-            if logOutput is not None:
-                logOutput(logFile, line)
-            # Done
-            values = doneParser.findall(line)
-            if values:
-                # print("Found a done.")
-                updateFunc(100, "D")
-                return
-            # Reading
-            values = readParser.findall(line)
-            if values:
-                # print("Found a read:" + line)
-                updateFunc(0, "R")
-                continue
-            # Verifying
-            values = verifyParser.findall(line)
-            if values:
-                # print("Found a verify:" + line)
-                updateFunc(0, "V")
-                continue
-
-            # Flashing or Erasing + address
-            values = posParser.findall(line)
-            if len(values) > 0:
-                if updateFunc is not None:
-                    val = values[len(values) - 1]
-                    pos = int(val[0].replace("0x", ""), 16)
-                    mode = "W"
-                    if val[1] == "E":
-                        mode = "E"
-                    updateFunc(pos, mode)
-            # print(line, end="")
-            # print("Received:", len(line), "bytes:", line)
-
-
-def printLogFileData(logFile: str, updateFunc: Callable) -> None:
-    logThread = threading.Thread(target=logReader, args=[logFile, updateFunc])
-    logThread.start()
-
-
-def setLogOutput(logOutputter: Callable):
-    global logOutput
-    logOutput = logOutputter
+                # Flashing or Erasing + address
+                values = posParser.findall(line)
+                if len(values) > 0:
+                    if self.updateFunc is not None:
+                        val = values[len(values) - 1]
+                        pos = int(val[0].replace("0x", ""), 16)
+                        mode = "W"
+                        if val[1] == "E":
+                            mode = "E"
+                        self.updateFunc(pos, mode)
+                # print(line, end="")
+                # print("Received:", len(line), "bytes:", line)
