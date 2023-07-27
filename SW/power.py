@@ -2,6 +2,8 @@
 from i2c import i2cAdc, i2cPot
 from gpio import pi_gpio
 from time import sleep
+import sys
+from utils import isfloat
 
 gpio = pi_gpio()
 adc = i2cAdc()
@@ -110,9 +112,17 @@ def enablePower():
 
 
 if __name__ == "__main__":
-    print("Please remove any chips and press Enter to test power supply accuracy")
-    print(
-        "DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel"
-    )
-    input()
-    checkPS()
+    if len(sys.argv) > 1:
+        if isfloat(sys.argv[1]):
+            setVoltage(float(sys.argv[1], True, False))
+            gpio.setPwrEn(True)
+        elif sys.argv[1].lower() == "off":
+            gpio.setPwrEn(False)
+            gpio.setPsEn(False)
+    else:
+        print("Please remove any chips and press Enter to test power supply accuracy")
+        print(
+            "DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel"
+        )
+        input()
+        checkPS()
