@@ -51,7 +51,6 @@ currentState = State.STARTUP
 currentProgress = 0
 currentFile = ""
 currentFilePath = mkdtemp()
-currentEraseMode = False
 currentVoltage = 0.0
 currentVoltageTarget = 0.0
 fileScrollPos = 0
@@ -261,7 +260,7 @@ def logdata(logFile, *args):
 
 
 def processFlash():
-    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, currentEraseMode, flashComplete
+    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete
     flashComplete = False
 
     gpio.setSigBusy(False)
@@ -342,7 +341,7 @@ def processFlash():
 
     enablePower()
 
-    if currentEraseMode:
+    if currentFile == "erase":
         logdata(logFile, "Launching erase command")
         chip, size = scanChip(logFile)
         fileSize = size * 1024
@@ -351,7 +350,7 @@ def processFlash():
         logdata(logFile, "Launching flash command for:", currentFile)
 
     result = None
-    if currentEraseMode:
+    if currentFile == "erase":
         result = flashImage(None, logFile, True, chip, size)
     else:
         if not os.path.isfile(fullPath):
@@ -411,10 +410,7 @@ if __name__ == "__main__":
     workerClient.setShutdown(systemShutdown)
 
     if len(sys.argv) > 1:
-        if sys.argv[1] == "erase":
-            currentEraseMode = True
-        else:
-            currentFile = sys.argv[1]
+        currentFile = sys.argv[1]
 
     if len(sys.argv) > 2 and isfloat(sys.argv[2]):
         currentVoltageTarget = float(sys.argv[2])
