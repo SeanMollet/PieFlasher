@@ -289,37 +289,38 @@ def processFlash():
     def updateStatus(pos, mode):
         global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete, verifyReadMode
         # Don't send the state if we've lost the race. Logs get sent elsewhere
-        if not flashComplete:
-            task = "Idle"
-            if mode == "R" and not verifyReadMode:
-                currentState = State.READING
-                currentProgress = pos
-                task = "Reading"
-            elif mode == "W":
-                currentState = State.FLASHING
-                currentProgress = int((pos / fileSize) * 100)
-                task = "Flashing"
-            elif mode == "V" or (mode == "R" and verifyReadMode):
-                verifyReadMode = True
-                currentState = State.VERIFYING
-                currentProgress = pos
-                task = "Verifying"
-            elif mode == "E":
-                currentState = State.ERASING
-                task = "Erasing"
-            elif mode == "D":
-                currentState = State.IDLE
-                task = "Done"
+        if flashComplete:
+            return
+        task = "Idle"
+        if mode == "R" and not verifyReadMode:
+            currentState = State.READING
+            currentProgress = pos
+            task = "Reading"
+        elif mode == "W":
+            currentState = State.FLASHING
+            currentProgress = int((pos / fileSize) * 100)
+            task = "Flashing"
+        elif mode == "V" or (mode == "R" and verifyReadMode):
+            verifyReadMode = True
+            currentState = State.VERIFYING
+            currentProgress = pos
+            task = "Verifying"
+        elif mode == "E":
+            currentState = State.ERASING
+            task = "Erasing"
+        elif mode == "D":
+            currentState = State.IDLE
+            task = "Done"
 
-            prevMode = mode
-            bar.update(pos, task=task)
-            workerClient.sendStatus(
-                str(currentState.name).capitalize(),
-                currentFile,
-                currentProgress,
-                currentVoltage,
-                currentVoltageTarget,
-            )
+        prevMode = mode
+        bar.update(pos, task=task)
+        workerClient.sendStatus(
+            str(currentState.name).capitalize(),
+            currentFile,
+            currentProgress,
+            currentVoltage,
+            currentVoltageTarget,
+        )
 
     logFile = flashLogger(updateStatus, sendLogData)
     print("Logging to:", logFile)

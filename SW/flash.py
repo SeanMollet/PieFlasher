@@ -66,6 +66,7 @@ def flashImage(
                     "-c",
                     chip,
                     "-E",
+                    "-n",
                 ]
             )
         else:
