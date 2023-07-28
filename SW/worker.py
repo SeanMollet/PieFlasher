@@ -292,6 +292,7 @@ def processFlash():
         if flashComplete:
             return
         task = "Idle"
+        
         if mode == "R" and not verifyReadMode:
             currentState = State.READING
             currentProgress = pos
@@ -307,6 +308,7 @@ def processFlash():
             task = "Verifying"
         elif mode == "E":
             currentState = State.ERASING
+            currentProgress = int((pos / fileSize) * 100)
             task = "Erasing"
         elif mode == "D":
             currentState = State.IDLE

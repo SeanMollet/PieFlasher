@@ -155,7 +155,7 @@ class flashLogger:
 
     def followFile(self, thefile) -> str:
         while True:
-            line = thefile.read(100)
+            line = thefile.read(1200)
             if line:
                 yield line
             else:
@@ -202,14 +202,6 @@ class flashLogger:
                     # print("Found a done.")
                     self.updateFunc(100, "D")
                     return
-                values = posParser.findall(line)
-                if len(values) > 0:
-                    val = values[len(values) - 1]
-                    pos = int(val[1], 16)
-                    mode = "W"
-                    if val[0] == "E":
-                        mode = "E"
-                    self.updateFunc(pos, mode)
                 # Reading
                 values = readParser.findall(line)
                 if values:
