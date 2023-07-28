@@ -91,14 +91,14 @@ def setVoltage(
     result = pot.setPot(potValue)
     if not result:
         return False
-    sleep(0.25)
+    sleep(0.20)
     if validate and target <= maxPwrControlVoltage():
-        voltage = round(adc.getVoltage(), 2)
+        voltage = adc.getVoltage()
         if output:
             if logger:
-                logger.logData("Voltage:", voltage)
+                logger.logData("Voltage:", round(voltage,2))
             else:
-                print("Voltage:", voltage)
+                print("Voltage:", round(voltage,2))
         if (
             target * (1 - voltageAccuracyThreshold)
             <= voltage

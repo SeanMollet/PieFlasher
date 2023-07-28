@@ -29,7 +29,7 @@ def testDir(path) -> bool:
     return True
 
 
-dataPath = "data"
+dataPath = os.path.join(Path.home(),"PieFlasherData")
 
 result = testDir(dataPath)
 if not result:
@@ -168,7 +168,7 @@ class flashLogger:
         readParser = re.compile(r"Reading old flash chip contents")
         verifyParser = re.compile(r"Verifying flash")
         doneParser = re.compile(r"Erase/write done")
-        posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
+        posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS]+)")
         # Wait for the file to be created
         # print("Waiting for log file", logFile)
         limit = 10 * 300
@@ -222,14 +222,6 @@ class flashLogger:
                     # print("Found a verify:" + line)
                     self.updateFunc(0, "V")
                     continue
-<<<<<<< HEAD
-                # Erasing
-                values = eraseParser.findall(line)
-                if values:
-                    # print("Found an erase:" + line)
-                    self.updateFunc(0, "E")
-                    continue
-=======
 
                 # Flashing or Erasing + address
                 values = posParser.findall(line)
@@ -238,9 +230,9 @@ class flashLogger:
                         val = values[len(values) - 1]
                         pos = int(val[0].replace("0x", ""), 16)
                         mode = "W"
+                        # Erase + Flash comes out as EW, this will only catch solo Erase
                         if val[1] == "E":
                             mode = "E"
                         self.updateFunc(pos, mode)
->>>>>>> 4e44572 (Working back to older version of flashrom)
                 # print(line, end="")
                 # print("Received:", len(line), "bytes:", line)
