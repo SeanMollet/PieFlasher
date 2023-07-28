@@ -347,12 +347,12 @@ def processFlash():
     chip = ""
     size = 0
     scanCount = 0
-    while chip == "" and size ==0 and scanCount < 50:
+    while (chip == "" or size ==0) and scanCount < 50:
         chip, size = scanChip(logFile.getPath())
         sleep(0.2)
         scanCount += 1
     if len(chip) > 0:
-        logFile.logData("Found chip:", chip)
+        logFile.logData("Found chip:", chip,"size:",size)
 
         if currentFile == "erase":
             logFile.logData("Launching erase command")
