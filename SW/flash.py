@@ -54,9 +54,25 @@ def flashImage(
 
     try:
         if eraseMode:
-            check_output([flashrom,"-p",spiArgs,"-o",logFile,"-a","-c",chip,"-E","-n"])
+            check_output(
+                [flashrom, "-p", spiArgs, "-o", logFile, "-a", "-c", chip, "-E", "-n"]
+            )
         else:
-            check_output([flashrom,"-p",spiArgs,"-o",logFile,"-a","-c",chip,"-w","-",],input=imageData,)
+            check_output(
+                [
+                    flashrom,
+                    "-p",
+                    spiArgs,
+                    "-o",
+                    logFile,
+                    "-a",
+                    "-c",
+                    chip,
+                    "-w",
+                    "-",
+                ],
+                input=imageData,
+            )
         return True
     except Exception:
         pass

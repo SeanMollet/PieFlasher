@@ -29,7 +29,7 @@ def testDir(path) -> bool:
     return True
 
 
-dataPath = os.path.join(Path.home(),"PieFlasherData")
+dataPath = os.path.join(Path.home(), "PieFlasherData")
 
 result = testDir(dataPath)
 if not result:
@@ -123,13 +123,19 @@ def getconfig(key: str):
 
 
 class flashLogger:
-    def __init__(self, updateFunc: Callable, logOutput: Callable = None) -> None:
+    def __init__(
+        self,
+        updateFunc: Callable,
+        logOutput: Callable = None,
+        eraseFailed: Callable = None,
+    ) -> None:
         self.logComplete = False
         self.filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
         self.logFilePath = os.path.join(logDir, self.filename)
         self.logComplete = False
         self.updateFunc = updateFunc
         self.logOutput = logOutput
+        self.eraseFailedFunc = eraseFailed
 
         self.logThread = threading.Thread(target=self.logReader)
         self.logThread.start()
@@ -169,6 +175,7 @@ class flashLogger:
         verifyParser = re.compile(r"Verifying flash")
         doneParser = re.compile(r"Erase/write done")
         posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS]+)")
+        eraseFailed = re.compile(r"ERASE FAILED")
         # Wait for the file to be created
         # print("Waiting for log file", logFile)
         limit = 10 * 300
@@ -195,7 +202,11 @@ class flashLogger:
                 if self.logOutput is not None:
                     self.logOutput(self.filename, line)
                 if self.updateFunc is None:
-                    continue                    
+                    continue
+                # Erase failed
+                values = eraseFailed.findall(line)
+                if values and self.eraseFailedFunc:
+                    self.eraseFailedFunc()
                 # Done
                 values = doneParser.findall(line)
                 if values:
