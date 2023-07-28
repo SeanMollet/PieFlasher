@@ -59,10 +59,12 @@ If all is working correctly, you'll see:
 ### Download and build flashrom
 
 By default, flashrom overwrites log files. This isn't a desirable behavior for us, so I've made a change to my version. I'll PR it upstream, but for now, use mine.
+Note that I'm going to PR my append change to the upcoming 1.4 version, but we use 1.3 here. I've made the same change to 1.3 and provide the branch on my fork.
 
 ```
 git clone https://github.com/SeanMollet/flashrom
 cd flashrom
+git checkout append
 
 make -j 4
 sudo make install

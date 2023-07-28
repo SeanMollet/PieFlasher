@@ -165,11 +165,10 @@ class flashLogger:
                 sleep(0.1)
 
     def logReader(self) -> None:
-        readParser = re.compile(r"\[(R)EAD\]\s*(\d+)%")
-        verifyParser = re.compile(r"verify_range")
-        eraseParser = re.compile(r"erase_write")
+        readParser = re.compile(r"Reading old flash chip contents")
+        verifyParser = re.compile(r"Verifying flash")
         doneParser = re.compile(r"Erase/write done")
-        posParser = re.compile(r"([EWS])\(.*?:([0-9a-f]*)")
+        posParser = re.compile(r"0x[0-9a-f]*-(0x[0-9a-f]*):([EWS])")
         # Wait for the file to be created
         # print("Waiting for log file", logFile)
         limit = 10 * 300
@@ -195,9 +194,9 @@ class flashLogger:
                     return
                 if self.logOutput is not None:
                     self.logOutput(self.filename, line)
-                # Done
                 if self.updateFunc is None:
-                    continue
+                    continue                    
+                # Done
                 values = doneParser.findall(line)
                 if values:
                     # print("Found a done.")
@@ -214,9 +213,8 @@ class flashLogger:
                 # Reading
                 values = readParser.findall(line)
                 if values:
-                    val = values[len(values) - 1]
-                    pos = int(val[1], 16)
-                    self.updateFunc(pos, "R")
+                    # print("Found a read:" + line)
+                    self.updateFunc(0, "R")
                     continue
                 # Verifying
                 values = verifyParser.findall(line)
@@ -224,11 +222,25 @@ class flashLogger:
                     # print("Found a verify:" + line)
                     self.updateFunc(0, "V")
                     continue
+<<<<<<< HEAD
                 # Erasing
                 values = eraseParser.findall(line)
                 if values:
                     # print("Found an erase:" + line)
                     self.updateFunc(0, "E")
                     continue
+=======
+
+                # Flashing or Erasing + address
+                values = posParser.findall(line)
+                if len(values) > 0:
+                    if self.updateFunc is not None:
+                        val = values[len(values) - 1]
+                        pos = int(val[0].replace("0x", ""), 16)
+                        mode = "W"
+                        if val[1] == "E":
+                            mode = "E"
+                        self.updateFunc(pos, mode)
+>>>>>>> 4e44572 (Working back to older version of flashrom)
                 # print(line, end="")
                 # print("Received:", len(line), "bytes:", line)
