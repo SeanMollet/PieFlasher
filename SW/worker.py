@@ -266,8 +266,8 @@ def killFlash():
 
 
 def processFlash():
-    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete, 
-    global verifyReadMode,flashKilled
+    global currentState, currentProgress, currentFile, currentFilePath, currentVoltageTarget, flashComplete
+    global verifyReadMode, flashKilled
     flashComplete = False
 
     gpio.setSigBusy(False)
@@ -381,29 +381,34 @@ def processFlash():
         result = None
         flashKilled = False
 
-        while retries>=0 and result is None: 
+        while retries >= 0 and result is None:
             try:
                 if currentFile == "erase":
                     result = flashImage(None, logFile.getPath(), True, chip, size)
                 else:
                     if not os.path.isfile(fullPath):
-                        logFile.logData("File " + currentFile + " not found. Aborting flash.")
+                        logFile.logData(
+                            "File " + currentFile + " not found. Aborting flash."
+                        )
                         result = False
                     else:
                         with open(fullPath, "rb") as imageFile:
                             data = imageFile.read()
-                            result = flashImage(data, logFile.getPath(), False, chip, size)
+                            result = flashImage(
+                                data, logFile.getPath(), False, chip, size
+                            )
             except Exception as E:
-                logFile.logData("Detailed error: "+str(E))
+                logFile.logData("Detailed error: " + str(E))
                 pass
             if flashKilled:
-                logFile.logData("Communications error - restarting flash at 2x lower speed")
+                logFile.logData(
+                    "Communications error - restarting flash at 2x lower speed"
+                )
                 decSpeed()
                 decSpeed()
                 flashKilled = False
                 result = None
-            retries -=1
-            
+            retries -= 1
 
         if result:
             logFile.logData("Success")
