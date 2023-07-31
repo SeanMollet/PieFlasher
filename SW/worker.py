@@ -13,7 +13,7 @@ from tempfile import mkdtemp
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
-from flash import flashImage, scanChipTestSpeed, resetSpeed, decSpeed
+from flash import flashImage, scanChipTestSpeed, resetSpeed, decSpeed, getSpeed
 from database import flashLogger, getconfig
 from utils import isfloat
 from pathlib import Path
@@ -57,10 +57,11 @@ fileScrollPos = 0
 fileScrollBack = False
 flashComplete = True
 verifyReadMode = False
+lastResult = "None"
 
 
 def downloadNewFile(fileName):
-    global currentProgress, currentState, currentFile, currentFilePath, currentVoltage, currentVoltageTarget
+    global currentProgress, currentState, currentFile, currentFilePath, currentVoltage, currentVoltageTarget, lastResult
     currentState = State.DOWNLOADING
 
     server = workerClient.getServer()
@@ -86,6 +87,7 @@ def downloadNewFile(fileName):
                     currentProgress = (i * chunk_size / total_size) * 100
                     workerClient.sendStatus(
                         str(currentState.name).capitalize(),
+                        lastResult,
                         currentFile,
                         currentProgress,
                         currentVoltage,
@@ -104,6 +106,7 @@ def downloadNewFile(fileName):
 
         workerClient.sendStatus(
             str(currentState.name).capitalize(),
+            lastResult,
             currentFile,
             currentProgress,
             currentVoltage,
@@ -229,7 +232,7 @@ def buttonCallback(channel):
 
 
 def main():
-    global imageChanged, imageCount, currentState, currentFile, currentProgress, currentVoltage, currentVoltageTarget
+    global imageChanged, imageCount, currentState, currentFile, currentProgress, currentVoltage, currentVoltageTarget, lastResult
     startupOver = time.time() + 2
 
     prevStartValue = True
@@ -240,6 +243,7 @@ def main():
             currentVoltage = adc.getVoltage()
             workerClient.sendStatus(
                 str(currentState.name).capitalize(),
+                lastResult,
                 currentFile,
                 currentProgress,
                 currentVoltage,
@@ -291,7 +295,7 @@ def processFlash():
     # There's a race condition here where the flash takes place so fast that we're out of the routine
     # Before we've read enough logfile to realize in the states
     def updateStatus(pos, mode):
-        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete, verifyReadMode
+        global currentProgress, currentState, currentFile, currentVoltage, currentVoltageTarget, flashComplete, verifyReadMode, lastResult
         # Don't send the state if we've lost the race. Logs get sent elsewhere
         if flashComplete:
             return
@@ -322,6 +326,7 @@ def processFlash():
         bar.update(pos, task=task)
         workerClient.sendStatus(
             str(currentState.name).capitalize(),
+            lastResult,
             currentFile,
             currentProgress,
             currentVoltage,
@@ -397,13 +402,16 @@ def processFlash():
     if result:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_OK", 1)
+        lastResult = "OK: " + getSpeed()
     else:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_NG", 1)
+        lastResult = "NG: " + getSpeed()
 
     currentState = State.IDLE
     workerClient.sendStatus(
         str(currentState.name).capitalize(),
+        lastResult,
         currentFile,
         0,
         currentVoltage,

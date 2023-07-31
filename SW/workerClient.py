@@ -148,7 +148,12 @@ def sendLogData(logFile, logData):
 
 
 def sendStatus(
-    status: str, filename: str, progress: float, voltage: float, targetVoltage: float
+    status: str,
+    lastResult: str,
+    filename: str,
+    progress: float,
+    voltage: float,
+    targetVoltage: float,
 ):
     global latestStatus, hostName
     # This either worked or it didn't, if it didn't, we don't care
@@ -156,6 +161,7 @@ def sendStatus(
         newStatus = {
             "Hostname": hostName,
             "Status": status,
+            "LastResult": lastResult,
             "Filename": filename,
             "Progress": progress,
             "Voltage": round(voltage, 2),

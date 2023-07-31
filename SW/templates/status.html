@@ -9,9 +9,10 @@
         <th onclick="sortTable('flasherStatus',1)">IP</th>
         <th onclick="sortTable('flasherStatus',2)">LastSeen</th>
         <th onclick="sortTable('flasherStatus',3)">Status</th>
-        <th onclick="sortTable('flasherStatus',4)">File</th>
-        <th onclick="sortTable('flasherStatus',5)">Progress</th>
-        <th onclick="sortTable('flasherStatus',6)">Voltage</th>
+        <th onclick="sortTable('flasherStatus',4)">Last Result</th>
+        <th onclick="sortTable('flasherStatus',5)">File</th>
+        <th onclick="sortTable('flasherStatus',6)">Progress</th>
+        <th onclick="sortTable('flasherStatus',7)">Voltage</th>
     </tr>
 </table>
 Average server latency: <b><span id="ping-pong"></span>ms</b>
@@ -105,6 +106,7 @@ Average server latency: <b><span id="ping-pong"></span>ms</b>
                         '<td id="' + msg.Hostname + '_IP"></td>' +
                         '<td id="' + msg.Hostname + '_LastSeen"></td>' +
                         '<td id="' + msg.Hostname + '_Status"></td>' +
+                        '<td id="' + msg.Hostname + '_LastResult"></td>' +
                         '<td id="' + msg.Hostname + '_File"></td>' +
                         '<td id="' + msg.Hostname + '_Progress"></td>' +
                         '<td id="' + msg.Hostname + '_Voltage"></td>' +
@@ -114,25 +116,39 @@ Average server latency: <b><span id="ping-pong"></span>ms</b>
                 $("#" + msg.Hostname + "_Hostname").empty();
                 $("#" + msg.Hostname + "_Hostname").append(msg.Hostname);
 
-                $("#" + msg.Hostname + "_IP").empty();
-                $("#" + msg.Hostname + "_IP").append(msg.IP);
-
-                $("#" + msg.Hostname + "_Status").empty();
-                $("#" + msg.Hostname + "_Status").append(msg.Status);
-
-                if (msg.Filename.length == 0) {
-                    msg.Filename = "No file";
+                if ("IP" in msg) {
+                    $("#" + msg.Hostname + "_IP").empty();
+                    $("#" + msg.Hostname + "_IP").append(msg.IP);
                 }
-                $("#" + msg.Hostname + "_File").empty();
-                $("#" + msg.Hostname + "_File").append(msg.Filename);
 
+                if ("Status" in msg) {
+                    $("#" + msg.Hostname + "_Status").empty();
+                    $("#" + msg.Hostname + "_Status").append(msg.Status);
+                }
 
-                $("#" + msg.Hostname + "_Progress").empty();
-                $("#" + msg.Hostname + "_Progress").append(parseFloat(msg.Progress).toFixed(0) + '%');
+                if ("LastResult" in msg) {
+                    $("#" + msg.Hostname + "_LastResult").empty();
+                    $("#" + msg.Hostname + "_LastResult").append(msg.LastResult);
+                }
 
-                let voltageDisplay = parseFloat(msg.Voltage).toFixed(2) + "V / " + parseFloat(msg.TargetVoltage).toFixed(2) + "V";
-                $("#" + msg.Hostname + "_Voltage").empty();
-                $("#" + msg.Hostname + "_Voltage").append(voltageDisplay);
+                if ("Filename" in msg) {
+                    if (msg.Filename.length == 0) {
+                        msg.Filename = "No file";
+                    }
+                    $("#" + msg.Hostname + "_File").empty();
+                    $("#" + msg.Hostname + "_File").append(msg.Filename);
+                }
+
+                if ("Progress" in msg) {
+                    $("#" + msg.Hostname + "_Progress").empty();
+                    $("#" + msg.Hostname + "_Progress").append(parseFloat(msg.Progress).toFixed(0) + '%');
+                }
+
+                if ("Voltage" && "TargetVoltage" in msg) {
+                    let voltageDisplay = parseFloat(msg.Voltage).toFixed(2) + "V / " + parseFloat(msg.TargetVoltage).toFixed(2) + "V";
+                    $("#" + msg.Hostname + "_Voltage").empty();
+                    $("#" + msg.Hostname + "_Voltage").append(voltageDisplay);
+                }
 
                 flasherLastUpdate[msg.Hostname] = (new Date).getTime();
                 // let row = $("#" + msg.Hostname);
