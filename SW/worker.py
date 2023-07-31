@@ -377,7 +377,7 @@ def processFlash():
         else:
             logFile.logData("Launching flash command for:", currentFile)
 
-        retries = 5
+        retries = 8
         result = None
         flashKilled = False
 
