@@ -7,7 +7,22 @@ from utils import isfloat
 from subprocess import check_output, CalledProcessError
 from database import flashLogger
 
-spiSpeeds = [500, 1000, 2000, 4000, 8000, 12000, 16000, 20000]
+spiSpeeds = [
+    500,
+    1000,
+    2000,
+    4000,
+    8000,
+    12000,
+    16000,
+    20000,
+    22000,
+    24000,
+    26000,
+    28000,
+    30000,
+    32000,
+]
 currentSpiSpeed = 0
 spiArgs = "linux_spi:dev=/dev/spidev0.0,spispeed={spispeed}"
 flashrom = shutil.which("flashrom")
