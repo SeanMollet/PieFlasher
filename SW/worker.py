@@ -329,7 +329,7 @@ def processFlash():
         prevMode = mode
         bar.update(pos, task=task)
         workerClient.sendStatus(
-            str(currentState.name).capitalize(),
+            str(currentState.name).capitalize() + ":" + getSpeed(),
             lastResult,
             currentFile,
             currentProgress,
