@@ -13,7 +13,7 @@ from tempfile import mkdtemp
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
-from flash import flashImage, scanChip, resetSpeed
+from flash import flashImage, scanChipTestSpeed, resetSpeed, decSpeed
 from database import flashLogger, getconfig
 from utils import isfloat
 from pathlib import Path
@@ -347,7 +347,7 @@ def processFlash():
     currentProgress = 0
 
     bar.start()
-    
+
     resetSpeed()
     enablePower()
     logFile.logData("Scanning chip")
@@ -355,10 +355,10 @@ def processFlash():
     size = 0
     scanCount = 0
     while (chip == "" or size == 0) and scanCount < 50:
-        chip, size = scanChip(logFile)
+        chip, size = scanChipTestSpeed(logFile)
         sleep(0.2)
         scanCount += 1
-    if len(chip) > 0:
+    if len(chip) > 0 and size > 0:
         logFile.logData("Found chip:", chip, "size:", size)
 
         if currentFile == "erase":
