@@ -180,7 +180,7 @@ class flashLogger:
         # print("Waiting for log file", logFile)
         limit = 10 * 300
         checks = 0
-        while checks < limit:
+        while checks < limit and not self.logComplete:
             if os.path.isfile(self.logFilePath):
                 break
             checks += 1
@@ -211,19 +211,22 @@ class flashLogger:
                 values = doneParser.findall(line)
                 if values:
                     # print("Found a done.")
-                    self.updateFunc(100, "D")
+                    if self.updateFunc:
+                        self.updateFunc(100, "D")
                     return
                 # Reading
                 values = readParser.findall(line)
                 if values:
                     # print("Found a read:" + line)
-                    self.updateFunc(0, "R")
+                    if self.updateFunc:
+                        self.updateFunc(0, "R")
                     continue
                 # Verifying
                 values = verifyParser.findall(line)
                 if values:
                     # print("Found a verify:" + line)
-                    self.updateFunc(0, "V")
+                    if self.updateFunc:
+                        self.updateFunc(0, "V")
                     continue
 
                 # Flashing or Erasing + address
