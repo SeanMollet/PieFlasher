@@ -159,6 +159,15 @@ class flashLogger:
         with open(self.logFilePath, "a") as f:
             f.write(data)
 
+    def getData(self) -> str:
+        try:
+            with open(self.logFilePath, "r") as f:
+                content = f.read()
+                return content
+        except IOError:
+            pass
+        return ""
+
     def followFile(self, thefile) -> str:
         while True:
             line = thefile.read(1200)

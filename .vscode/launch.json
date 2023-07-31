@@ -31,6 +31,18 @@
             "cwd": "${workspaceFolder}/SW",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: flash.py",
+            "type": "python",
+            "request": "launch",
+            "program": "flash.py",
+            "args": [
+                "3.3"
+            ],
+            "cwd": "${workspaceFolder}/SW",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

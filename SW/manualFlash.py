@@ -5,7 +5,7 @@ import progressbar
 from utils import isfloat
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
 from flash import flashImage, scanChip
-from database import getLogFileName, loggingComplete
+from database import flashLogger
 
 if len(sys.argv) < 3:
     print("Usage: manualFlash.py <Filename> <Voltage>")
@@ -68,7 +68,7 @@ bar = progressbar.ProgressBar(
     max_value=fileSize,
     widgets=widgets,
 ).start()
-logFile = getLogFileName(lambda pos, mode: bar.update(pos, task=mode))
+logFile = flashLogger(lambda pos, mode: bar.update(pos, task=mode))
 
 result = None
 if eraseMode:
@@ -85,5 +85,5 @@ if result:
 else:
     print("Error performing operation, check logfile")
 
-loggingComplete()
+logFile.shutdownLogging()
 disablePower()
