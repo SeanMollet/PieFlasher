@@ -248,6 +248,8 @@ class flashLogger:
                         # Erase + Flash comes out as EW, this will only catch solo Erase
                         if val[1] == "E":
                             mode = "E"
+                        elif val[1] == "EW":
+                            mode = "W"
                         self.updateFunc(pos, mode)
                 # print(line, end="")
                 # print("Received:", len(line), "bytes:", line)
