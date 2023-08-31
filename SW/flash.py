@@ -9,20 +9,13 @@ from database import flashLogger
 
 spiSpeeds = [
     500,
-    1000,
     2000,
-    3000,
     4000,
-    5000,
-    6000,
-    7000,
     8000,
-    9000,
     10000,
-    11000,
     12000,
-    16000,
-    20000,
+    # 16000,
+    # 20000,
 ]
 currentSpiSpeed = 0
 spiArgs = "linux_spi:dev=/dev/spidev0.0,spispeed={spispeed}"
@@ -40,6 +33,10 @@ def log(logFile, data):
 
 def resetSpeed():
     currentSpiSpeed = 0
+
+
+def maxSpeed():
+    currentSpiSpeed = len(spiSpeeds) - 1
 
 
 def getSpeed():
