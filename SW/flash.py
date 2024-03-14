@@ -173,7 +173,7 @@ if __name__ == "__main__":
     import power
     from database import flashLogger
 
-    logFile = flashLogger(None)
+    logFile = flashLogger(None,None,None,True)
 
     result = power.setVoltage(voltage, True, True)
     if not result:
