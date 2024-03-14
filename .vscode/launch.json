@@ -43,6 +43,18 @@
             "cwd": "${workspaceFolder}/SW",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: flash_spi.py",
+            "type": "python",
+            "request": "launch",
+            "program": "flash_spi.py",
+            "args": [
+                "3.3"
+            ],
+            "cwd": "${workspaceFolder}/SW",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

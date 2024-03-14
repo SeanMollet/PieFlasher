@@ -2,5 +2,11 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none"
+    "python.formatting.provider": "black",
+    "black-formatter.args": [
+        "--line-length",
+        "119"
+    ],
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
 }

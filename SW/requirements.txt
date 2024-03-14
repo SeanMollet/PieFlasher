@@ -9,3 +9,4 @@ python-socketio==5.8.0
 websocket-client==1.6.1
 werkzeug==2.3.6
 requests==2.31.0
+spidev==3.6

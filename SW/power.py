@@ -22,7 +22,7 @@ def maxPwrControlVoltage():
 def getPotForVoltage(target):
     global stepOffset
     FirstUsefulValue = 45
-    Slope = 0.045977678
+    Slope = 0.048
     return int((5 - target) / (Slope)) + FirstUsefulValue + stepOffset
 
 
@@ -144,6 +144,9 @@ if __name__ == "__main__":
         if isfloat(sys.argv[1]):
             setVoltage(float(sys.argv[1]), True, False)
             gpio.setPwrEn(True)
+            voltage= adc.getVoltage()
+            # gpio.setPsEn(True)
+            print("Current voltage:",voltage)
         elif sys.argv[1].lower() == "off":
             gpio.setPwrEn(False)
             gpio.setPsEn(False)
@@ -153,4 +156,5 @@ if __name__ == "__main__":
             "DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel"
         )
         input()
-        checkPS()
+        #checkPS()
+        calibrate()
