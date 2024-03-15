@@ -356,7 +356,7 @@ def processFlash():
     enablePower()
     flasher = SpiFlash(logFile)
     result = None
-    while not chip and scanCount < 50:
+    while not chip and scanCount < 10:
         sleep(0.2)  # Always sleep to give the part a chance to wake up
         flasher.CheckPart()
         chip = flasher.ChipID()
