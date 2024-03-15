@@ -26,7 +26,7 @@ class SpiFlash:
             return False
         chip = self.chipComms.getChip()
         if chip:
-            self.logger.logData("Found chip:", chip.Maker, chip.Model)
+            self.logger.logData("Found chip: ", chip.Maker, chip.Model)
             self.chip = chip
             return chip
         else:
@@ -142,9 +142,13 @@ if __name__ == "__main__":
     logger = flashLogger(None, None, None, True)
     flash = SpiFlash(logger)
     if not flash.CheckPart():
+        print("Could not find chip")
         sys.exit(-1)
     chip = flash.ChipID()
-    # flash.EraseChip()
+    print("Found:", chip.Maker, chip.Model)
+    print("Erasing")
+    flash.EraseChip()
+    print("Flashing")
     fileData = []
     with open("/home/sean/u-boot.img", mode="rb") as input:
         fileData = input.read()
