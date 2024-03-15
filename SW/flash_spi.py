@@ -77,11 +77,11 @@ class SpiFlash:
             flashBlocks.append(list(FlashData[i * self.chip.EraseSize : end]))
 
         self.logger.logData("Split input into ", len(flashBlocks), " blocks")
-        result = True
+        blockResult = [False] * blockCount
         failures = 0
         filePos = 0
         for i in range(len(flashBlocks)):
-            if failures > 50:
+            if failures > 10:
                 self.logger.logData("Error limit exceeded, aborting")
                 return False
             mustFlash = False
@@ -99,20 +99,24 @@ class SpiFlash:
                 erase = self.chipComms.sectorErase(address)
                 if not erase:
                     self.logger.logData("Error erasing block:", i)
-                    result = False
+                    i -= 1
+                    failures += 1
                     continue
                 self.logger.logData("Writing block:", i)
                 flash = self.chipComms.writeData(address, flashBlocks[i])
                 if not flash:
                     self.logger.logData("Error flashing block:", i)
-                    result = False
+                    i -= 1
+                    failures += 1
                     continue
                 currentData = self.chipComms.readData(address, len(flashBlocks[i]))
                 if len(currentData) != len(flashBlocks[i]):
                     self.logger.logData(
                         "Re-read gave a different length. Expected:", len(flashBlocks[i]), " Got:", len(currentData)
                     )
-                    result = False
+                    i -= 1
+                    failures += 1
+                    continue
                 for j in range(len(currentData)):
                     if currentData[j] != flashBlocks[i][j]:
                         self.logger.logData("Found mis-write in block: ", i, " Location:", j)
@@ -120,12 +124,18 @@ class SpiFlash:
                         # Retry this block
                         i -= 1
                         failures += 1
-                        break
+                        continue
+                blockResult[i] = True
+                failures = 0
             else:
                 self.logger.logData("Skipping block:", i)
+                blockResult[i] = True
             self.logger.updateFlashPos(filePos)
             filePos += len(flashBlocks[i])
-        return result
+        for i in range(blockCount):
+            if not blockResult[i]:
+                return False
+        return True
 
 
 if __name__ == "__main__":
