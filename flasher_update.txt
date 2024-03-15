@@ -1,0 +1,4 @@
+for a in Flasher-A Flasher-B Flasher-C Flasher-D; do ssh $a 'sudo systemctl stop pieflasher' & done
+
+
+for a in Flasher-A Flasher-B Flasher-C Flasher-D; do ssh $a 'cd PieFlasher; git pull; sudo systemctl restart pieflasher' & done

@@ -355,7 +355,7 @@ def processFlash():
     size = 0
     scanCount = 0
     flasher = SpiFlash(logFile)
-    while (chip is None) and scanCount < 50:
+    while not chip and scanCount < 10:
         flasher.CheckPart()
         chip = flasher.ChipID()
         if chip:
@@ -364,7 +364,7 @@ def processFlash():
             break
         sleep(0.2)
         scanCount += 1
-    if len(chip) > 0 and size > 0:
+    if chip and len(chip) > 0 and size > 0:
         logFile.logData("Found chip:", chip, " size:", size)
 
         if currentFile == "erase":
