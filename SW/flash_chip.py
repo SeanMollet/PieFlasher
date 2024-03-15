@@ -37,7 +37,7 @@ class flashChip:
         (0xC2, 0x2019, "Macronix", "MX25L25645G", 3.3, 20, 4 * 1024, 4096),
     ]
 
-    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(2 * 1000 * 1000), debug=False):
+    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(500 * 1000), debug=False):
         self.spi = spidev.SpiDev(spi_device, spi_channel)
         self.spi.max_speed_hz = max_speed_hz
         self.debug = debug
