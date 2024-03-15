@@ -64,7 +64,7 @@ class flashChip:
                 self.chip.EraseSize = good[6]
                 self.chip.BlockCount = good[7]
                 return True
-        print("Chip not found in known list. Aborting.")
+        print("Chip not found in known list. Aborting. ID:", self.chipID)
         return False
 
     def getChip(self):
