@@ -22,7 +22,7 @@ def maxPwrControlVoltage():
 def getPotForVoltage(target):
     global stepOffset
     FirstUsefulValue = 45
-    Slope = 0.048
+    Slope = 0.046
     return int((5 - target) / (Slope)) + FirstUsefulValue + stepOffset
 
 
@@ -60,12 +60,8 @@ def checkPS():
         pot.setPot(potValue)
         sleep(0.1)
         voltage = round(adc.getVoltage(), 2)
-        print("Target:", target, "Act:", voltage,"Pot:",potValue, end="")
-        if (
-            target * (1 - voltageAccuracyThreshold)
-            <= voltage
-            <= target * (1 + voltageAccuracyThreshold)
-        ):
+        print("Target:", target, "Act:", voltage, "Pot:", potValue, end="")
+        if target * (1 - voltageAccuracyThreshold) <= voltage <= target * (1 + voltageAccuracyThreshold):
             print(" OK")
         else:
             print(" Failed")
@@ -96,14 +92,10 @@ def setVoltage(
         voltage = adc.getVoltage()
         if output:
             if logger:
-                logger.logData("Voltage:", round(voltage,2))
+                logger.logData("Voltage:", round(voltage, 2))
             else:
-                print("Voltage:", round(voltage,2))
-        if (
-            target * (1 - voltageAccuracyThreshold)
-            <= voltage
-            <= target * (1 + voltageAccuracyThreshold)
-        ):
+                print("Voltage:", round(voltage, 2))
+        if target * (1 - voltageAccuracyThreshold) <= voltage <= target * (1 + voltageAccuracyThreshold):
             return True
         if logger:
             logger.logData(
@@ -144,17 +136,15 @@ if __name__ == "__main__":
         if isfloat(sys.argv[1]):
             setVoltage(float(sys.argv[1]), True, False)
             gpio.setPwrEn(True)
-            voltage= adc.getVoltage()
+            voltage = adc.getVoltage()
             # gpio.setPsEn(True)
-            print("Current voltage:",voltage)
+            print("Current voltage:", voltage)
         elif sys.argv[1].lower() == "off":
             gpio.setPwrEn(False)
             gpio.setPsEn(False)
     else:
         print("Please remove any chips and press Enter to test power supply accuracy")
-        print(
-            "DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel"
-        )
+        print("DON'T DO THIS WITH A CHIP ATTACHED, YOU MIGHT DAMAGE IT! Press CTRL+C to Cancel")
         input()
-        #checkPS()
+        # checkPS()
         calibrate()
