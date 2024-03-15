@@ -22,7 +22,7 @@ def maxPwrControlVoltage():
 def getPotForVoltage(target):
     global stepOffset
     FirstUsefulValue = 45
-    Slope = 0.0465
+    Slope = 0.047
     return int((5 - target) / (Slope)) + FirstUsefulValue + stepOffset
 
 
