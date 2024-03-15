@@ -37,20 +37,23 @@ class flashChip:
         (0xC2, 0x2019, "Macronix", "MX25L25645G", 3.3, 20, 4 * 1024, 4096),
     ]
 
-    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(500 * 1000), debug=False):
+    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(1000 * 1000), debug=False):
         self.spi = spidev.SpiDev(spi_device, spi_channel)
         self.spi.max_speed_hz = max_speed_hz
         self.debug = debug
         self.maxTransfer = 2048
-        self.speed = max_speed_hz
+        self.max_speed_hz = max_speed_hz
 
     def getSpeed(self):
-        return self.speed
+        return self.max_speed_hz
 
     def setSpeed(self, max_speed_hz: int):
-        self.speed = max_speed_hz
+        self.max_speed_hz = max_speed_hz
         self.spi.max_speed_hz = max_speed_hz
         return True
+
+    def defaultSpeed(self):
+        self.spi.max_speed_hz = self.max_speed_hz
 
     def checkPart(self):
         self.chipID = self.getDeviceID()
@@ -73,9 +76,11 @@ class flashChip:
         return None
 
     def getDeviceID(self, debug=False):
+        self.spi.max_speed_hz = 100000
         if debug or self.debug:
             print("----> manufacturer_device_id called <----")
         list_of_bytes = self.spi.xfer2([self.CMD_Read_Identification] + [0x00] * 3)
+        self.defaultSpeed()
         return (list_of_bytes[1], list_of_bytes[2] << 8 | list_of_bytes[3])
 
     # Bit   7   6   5   4   3   2   1   0
