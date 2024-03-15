@@ -13,7 +13,9 @@ from tempfile import mkdtemp
 from i2c import lockI2C, i2cAdc
 from gpio import pi_gpio
 from power import setVoltage, maxPwrControlVoltage, disablePower, enablePower
-from flash import flashImage, scanChipTestSpeed, resetSpeed, decSpeed, getSpeed
+
+# from flash import flashImage, scanChipTestSpeed, resetSpeed, decSpeed, getSpeed
+from flash_spi import SpiFlash
 from database import flashLogger, getconfig
 from utils import isfloat
 from pathlib import Path
@@ -136,9 +138,7 @@ def show_display(device):
 
     currentVoltage = adc.getVoltage()
     if currentState == State.STARTUP:
-        pieImagePath = str(
-            Path(__file__).resolve().parent.joinpath("images", "PieSlice.png")
-        )
+        pieImagePath = str(Path(__file__).resolve().parent.joinpath("images", "PieSlice.png"))
 
         pieImage = Image.open(pieImagePath).convert("RGBA")
 
@@ -188,10 +188,7 @@ def show_display(device):
 
     draw.text(
         (0, 14),
-        "{:0.2f}".format(currentVoltage)
-        + "V / "
-        + "{:0.2f}".format(currentVoltageTarget)
-        + "V",
+        "{:0.2f}".format(currentVoltage) + "V / " + "{:0.2f}".format(currentVoltageTarget) + "V",
         font=oledFont,
         fill="white",
     )
@@ -357,14 +354,19 @@ def processFlash():
 
     bar.start()
 
-    resetSpeed()
     enablePower()
     logFile.logData("Scanning chip")
-    chip = ""
+    chip = None
     size = 0
     scanCount = 0
-    while (chip == "" or size == 0) and scanCount < 50:
-        chip, size = scanChipTestSpeed(logFile)
+    flasher = SpiFlash(logFile)
+    while (chip is None) and scanCount < 50:
+        flasher.CheckPart()
+        chip = flasher.ChipID()
+        if chip:
+            size = chip.BlockCount * chip.EraseSize
+            chip = chip.Maker + " " + chip.Model
+            break
         sleep(0.2)
         scanCount += 1
     if len(chip) > 0 and size > 0:
@@ -382,30 +384,24 @@ def processFlash():
         flashKilled = False
 
         while retries >= 0 and result is None:
+            result = False
             try:
+
                 if currentFile == "erase":
-                    result = flashImage(None, logFile.getPath(), True, chip, size)
+                    result = flasher.EraseChip()
                 else:
                     if not os.path.isfile(fullPath):
-                        logFile.logData(
-                            "File " + currentFile + " not found. Aborting flash."
-                        )
+                        logFile.logData("File " + currentFile + " not found. Aborting flash.")
                         result = False
                     else:
                         with open(fullPath, "rb") as imageFile:
                             data = imageFile.read()
-                            result = flashImage(
-                                data, logFile.getPath(), False, chip, size
-                            )
+                            result = flasher.FlashChip(data)
             except Exception as E:
                 logFile.logData("Detailed error: " + str(E))
                 pass
-            if flashKilled:
-                logFile.logData(
-                    "Communications error - restarting flash at 2x lower speed"
-                )
-                decSpeed()
-                decSpeed()
+            if not result:
+                logFile.logData("Communications error - restarting flash")
                 flashKilled = False
                 result = None
             retries -= 1
@@ -428,11 +424,11 @@ def processFlash():
     if result:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_OK", 1)
-        lastResult = "OK: " + getSpeed()
+        lastResult = "OK:"
     else:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_NG", 1)
-        lastResult = "NG: " + getSpeed()
+        lastResult = "NG:"
 
     currentState = State.IDLE
     workerClient.sendStatus(

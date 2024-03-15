@@ -37,7 +37,7 @@ class flashChip:
         (0xC2, 0x2019, "Macronix", "MX25L25645G", 3.3, 20, 4 * 1024, 4096),
     ]
 
-    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=10000000, debug=False):  # 5MHz
+    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(2 * 1000 * 1000), debug=False):
         self.spi = spidev.SpiDev(spi_device, spi_channel)
         self.spi.max_speed_hz = max_speed_hz
         self.debug = debug
@@ -80,7 +80,7 @@ class flashChip:
     def checkWipAndWel(self, num_attempts=10, timestep=0.001, expected_status=0x00, debug=False):
         if debug or self.debug:
             print("---->check_wip_and_wel called <----")
-        attempts = 25
+        attempts = 50
         while attempts > 0:
             time.sleep(timestep)
             if (self.readStatusRegister1() & 0x03) == expected_status:

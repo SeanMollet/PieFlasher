@@ -133,7 +133,7 @@ class flashLogger:
         self.updateFunc = updateFunc
         self.logOutput = logOutput
         self.eraseFailedFunc = eraseFailed
-        self.consoleOnly = consoleOnly
+        self.consoleLog = consoleOnly
 
     def getFilename(self):
         return os.path.basename(self.logFilePath)
@@ -151,8 +151,9 @@ class flashLogger:
 
     def logData(self, *args):
         data = "".join(map(str, args)) + "\n"
-        print(data, end="")
-        if not self.consoleOnly:
+        if self.consoleLog:
+            print(data, end="")
+        else:
             with open(self.logFilePath, "a") as f:
                 f.write(data)
 
@@ -175,6 +176,14 @@ class flashLogger:
                 if self.logComplete:
                     yield None
                 sleep(0.1)
+
+    def updateFlashPos(self, pos):
+        if self.updateFunc:
+            self.updateFunc(pos, "W")
+
+    def updateFlashComplete(self):
+        if self.updateFunc:
+            self.updateFunc(100, "D")
 
     def logReader(self) -> None:
         readParser = re.compile(r"Reading old flash chip contents")

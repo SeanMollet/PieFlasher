@@ -33,6 +33,13 @@ class SpiFlash:
             print("Part not found")
             return False
 
+    def EraseChip(self):
+        if not self.validated or not self.chip:
+            self.logger.logData("Chip not initialized")
+            return False
+        result = self.chipComms.ChipErase()
+        return result
+
     def FlashChip(self, FlashData):
         if not self.validated or not self.chip:
             self.logger.logData("Chip not initialized")
@@ -95,6 +102,8 @@ class SpiFlash:
                         i -= 1
                         failures += 1
                         break
+            else:
+                self.logger.logData("Skipping block:", i)
         return result
 
 
@@ -104,8 +113,9 @@ if __name__ == "__main__":
     if not flash.CheckPart():
         sys.exit(-1)
     chip = flash.ChipID()
+    # flash.EraseChip()
     fileData = []
-    with open("/home/sean/FullImage16m.img", mode="rb") as input:
+    with open("/home/sean/u-boot.img", mode="rb") as input:
         fileData = input.read()
 
     flash.FlashChip(fileData)
