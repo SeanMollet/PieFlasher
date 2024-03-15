@@ -419,10 +419,12 @@ def processFlash():
     # This is down here so we don't tell the machine we're done until we've de-powered the chip
     if result:
         gpio.setSigBusy(True)
+        print("Signalling OK")
         gpio.holdSignal("SIG_OK", 1)
         lastResult = "OK"
     else:
         gpio.setSigBusy(True)
+        print("Signalling error")
         gpio.holdSignal("SIG_NG", 1)
         lastResult = "NG"
 
