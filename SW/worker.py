@@ -355,6 +355,7 @@ def processFlash():
     size = 0
     scanCount = 0
     flasher = SpiFlash(logFile)
+    result = None
     while not chip and scanCount < 10:
         flasher.CheckPart()
         chip = flasher.ChipID()
