@@ -76,7 +76,7 @@ class flashChip:
         return None
 
     def getDeviceID(self, debug=False):
-        self.spi.max_speed_hz = 100000
+        self.spi.max_speed_hz = 50000
         if debug or self.debug:
             print("----> manufacturer_device_id called <----")
         list_of_bytes = self.spi.xfer2([self.CMD_Read_Identification] + [0x00] * 3)
