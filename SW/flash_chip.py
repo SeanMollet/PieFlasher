@@ -42,6 +42,15 @@ class flashChip:
         self.spi.max_speed_hz = max_speed_hz
         self.debug = debug
         self.maxTransfer = 2048
+        self.speed = max_speed_hz
+
+    def getSpeed(self):
+        return self.speed
+
+    def setSpeed(self, max_speed_hz: int):
+        self.speed = max_speed_hz
+        self.spi.max_speed_hz = max_speed_hz
+        return True
 
     def checkPart(self):
         self.chipID = self.getDeviceID()

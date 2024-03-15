@@ -177,6 +177,14 @@ class flashLogger:
                     yield None
                 sleep(0.1)
 
+    def updateReadPos(self, pos):
+        if self.updateFunc:
+            self.updateFunc(pos, "R")
+
+    def updateErasePos(self, pos):
+        if self.updateFunc:
+            self.updateFunc(pos, "E")
+
     def updateFlashPos(self, pos):
         if self.updateFunc:
             self.updateFunc(pos, "W")

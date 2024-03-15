@@ -37,7 +37,25 @@ class SpiFlash:
         if not self.validated or not self.chip:
             self.logger.logData("Chip not initialized")
             return False
-        result = self.chipComms.ChipErase()
+        useChipErase = True
+        if useChipErase:
+            self.logger.updateErasePos(0)
+            result = self.chipComms.ChipErase()
+            self.logger.updateErasePos(self.chip.BlockCount * self.chip.EraseSize)
+        else:
+            blocks = [False] * self.chip.BlockCount
+            for i in range(self.chip.BlockCount):
+                self.logger.updateReadPos(i * self.chip.BlockCount)
+                data = self.chipComms.readData(i * self.chip.EraseSize, self.chip.EraseSize)
+                for j in range(len(data)):
+                    if data[j] != 0xFF:
+                        self.logger.logData("Must erase block:", i)
+                        blocks[i] = True
+                        break
+            for i in range(self.chip.BlockCount):
+                if blocks[i]:
+                    self.logger.updateErasePos(i * self.chip.BlockCount)
+                    self.chipComms.sectorErase(i * self.chip.EraseSize)
         return result
 
     def FlashChip(self, FlashData):
@@ -61,6 +79,7 @@ class SpiFlash:
         self.logger.logData("Split input into ", len(flashBlocks), " blocks")
         result = True
         failures = 0
+        filePos = 0
         for i in range(len(flashBlocks)):
             if failures > 50:
                 self.logger.logData("Error limit exceeded, aborting")
@@ -104,6 +123,8 @@ class SpiFlash:
                         break
             else:
                 self.logger.logData("Skipping block:", i)
+            self.logger.updateFlashPos(filePos)
+            filePos += len(flashBlocks[i])
         return result
 
 

@@ -31,7 +31,14 @@ sudo reboot
 ### Install necessary tools
 PieFlasher pre-requisites
 ```
-sudo apt install git python3-pip i2c-tools python3-sphinx
+sudo apt install git python3-pip i2c-tools python3-sphinx python3-venv
+```
+
+### Make a venv (Optional)
+```
+python3 -m venv venv
+. venv/bin/activate
+pip3 install -r requirements.txt
 ```
 
 Luma pre-requisites
@@ -56,19 +63,6 @@ If all is working correctly, you'll see:
 70: -- -- -- -- -- -- -- --
 ```
 
-### Download and build flashrom
-
-By default, flashrom overwrites log files. This isn't a desirable behavior for us, so I've made a change to my version. I'll PR it upstream, but for now, use mine.
-Note that I'm going to PR my append change to the upcoming 1.4 version, but we use 1.3 here. I've made the same change to 1.3 and provide the branch on my fork.
-
-```
-git clone https://github.com/SeanMollet/flashrom
-cd flashrom
-git checkout append
-
-make -j 4
-sudo make install
-```
 
 ### The files
 

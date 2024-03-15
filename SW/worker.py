@@ -304,17 +304,12 @@ def processFlash():
 
         if mode == "R" and not verifyReadMode:
             currentState = State.READING
-            currentProgress = pos
+            currentProgress = int((pos / fileSize) * 100)
             task = "Reading"
         elif mode == "W":
             currentState = State.FLASHING
             currentProgress = int((pos / fileSize) * 100)
             task = "Flashing"
-        elif mode == "V" or (mode == "R" and verifyReadMode):
-            verifyReadMode = True
-            currentState = State.VERIFYING
-            currentProgress = pos
-            task = "Verifying"
         elif mode == "E":
             currentState = State.ERASING
             currentProgress = int((pos / fileSize) * 100)
@@ -326,7 +321,7 @@ def processFlash():
         prevMode = mode
         bar.update(pos, task=task)
         workerClient.sendStatus(
-            str(currentState.name).capitalize() + ":" + getSpeed(),
+            str(currentState.name).capitalize(),
             lastResult,
             currentFile,
             currentProgress,
@@ -364,13 +359,13 @@ def processFlash():
         flasher.CheckPart()
         chip = flasher.ChipID()
         if chip:
-            size = chip.BlockCount * chip.EraseSize
+            size = (chip.BlockCount * chip.EraseSize) // 1024
             chip = chip.Maker + " " + chip.Model
             break
         sleep(0.2)
         scanCount += 1
     if len(chip) > 0 and size > 0:
-        logFile.logData("Found chip:", chip, "size:", size)
+        logFile.logData("Found chip:", chip, " size:", size)
 
         if currentFile == "erase":
             logFile.logData("Launching erase command")
@@ -424,11 +419,11 @@ def processFlash():
     if result:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_OK", 1)
-        lastResult = "OK:"
+        lastResult = "OK"
     else:
         gpio.setSigBusy(True)
         gpio.holdSignal("SIG_NG", 1)
-        lastResult = "NG:"
+        lastResult = "NG"
 
     currentState = State.IDLE
     workerClient.sendStatus(
