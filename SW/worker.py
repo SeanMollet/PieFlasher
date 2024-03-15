@@ -353,19 +353,17 @@ def processFlash():
     chip = None
     size = 0
     scanCount = 0
+    enablePower()
     flasher = SpiFlash(logFile)
     result = None
     while not chip and scanCount < 50:
-        enablePower()
-        sleep(0.1)
+        sleep(0.2)  # Always sleep to give the part a chance to wake up
         flasher.CheckPart()
         chip = flasher.ChipID()
         if chip:
             size = (chip.BlockCount * chip.EraseSize) // 1024
             chip = chip.Maker + " " + chip.Model
             break
-        disablePower()
-        sleep(0.2)
         scanCount += 1
     if chip and len(chip) > 0 and size > 0:
         logFile.logData("Found chip:", chip, " size:", size)
