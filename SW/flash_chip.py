@@ -1,9 +1,10 @@
-import spidev
 import time
 from database import flashLogger, getconfig
 
 # Lots of inspiration and some code shamelessly taken from: https://github.com/charkster/GD25Q32C
 # Thanks!
+
+from ftdiSPI import SPIComms
 
 
 class AttrDict(dict):
@@ -39,10 +40,10 @@ class flashChip:
     ]
 
     def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(1000 * 1000), debug=False):
-        self.spi = spidev.SpiDev(spi_device, spi_channel)
+        self.spi = SPIComms(spi_device, spi_channel)
         self.spi.max_speed_hz = max_speed_hz
         self.debug = debug
-        self.maxTransfer = 2048
+        self.maxTransfer = self.spi.get_max_xfer()
         self.max_speed_hz = max_speed_hz
 
     def getSpeed(self):
