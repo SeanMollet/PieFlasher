@@ -4,7 +4,11 @@ from database import flashLogger, getconfig
 # Lots of inspiration and some code shamelessly taken from: https://github.com/charkster/GD25Q32C
 # Thanks!
 
-from ftdiSPI import SPIComms
+useFtdi = getconfig("Ftdi")
+if useFtdi:
+    from ftdiSPI import SPIComms
+else:
+    from linuxSPI import SPIComms
 
 
 class AttrDict(dict):
