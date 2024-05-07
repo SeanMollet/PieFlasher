@@ -6,6 +6,9 @@ class SPIComms:
         self.spi = spidev.SpiDev(spi_device, spi_channel)
         self.spi.max_speed_hz = max_speed_hz
 
+    def selfPowered(self):
+        return False
+
     def xfer2(self, data):
         return self.spi.xfer2(data)
 

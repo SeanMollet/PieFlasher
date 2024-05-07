@@ -332,18 +332,22 @@ def processFlash():
     logFile = flashLogger(updateStatus, sendLogData, killFlash)
     print("Logging to:", logFile.getFilename())
 
-    # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
-    # Can't go closed loop, but that's not really an issue with a 5V chip
-    logFile.logData("Setting voltage to:" + str(currentVoltageTarget))
-    if currentVoltageTarget < maxPwrControlVoltage():
-        result = setVoltage(currentVoltageTarget, True, False)
-        if not result:
-            logFile.logData("Unable to set requested voltage. Aborting.")
-            disablePower()
-            currentState = State.ERROR
-            gpio.setSigBusy(True)
-            gpio.holdSignal("SIG_NG", 1)
-            return
+    useFtdi = getconfig("Ftdi")
+    if useFtdi=False:
+        # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
+        # Can't go closed loop, but that's not really an issue with a 5V chip
+        logFile.logData("Setting voltage to:" + str(currentVoltageTarget))
+        if currentVoltageTarget < maxPwrControlVoltage():
+            result = setVoltage(currentVoltageTarget, True, False)
+            if not result:
+                logFile.logData("Unable to set requested voltage. Aborting.")
+                disablePower()
+                currentState = State.ERROR
+                gpio.setSigBusy(True)
+                gpio.holdSignal("SIG_NG", 1)
+                return
+    else:
+        logFile.logData("Using FTDI, so voltage is fixed at 3.3v.")
 
     currentProgress = 0
 

@@ -12,6 +12,9 @@ class SPIComms:
         self.gpio.set_direction(0xF0, 0xF0)
         self.set_flash_gpio()
 
+    def selfPowered(self):
+        return True
+
     def set_flash_gpio(self):
         self.gpio.write(0xF0)
 
