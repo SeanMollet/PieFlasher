@@ -333,7 +333,7 @@ def processFlash():
     print("Logging to:", logFile.getFilename())
 
     useFtdi = getconfig("Ftdi")
-    if useFtdi=False:
+    if useFtdi == False:
         # Voltages above 3.4 must be controlled with PS_EN, since the FET for Output turns on automatically.
         # Can't go closed loop, but that's not really an issue with a 5V chip
         logFile.logData("Setting voltage to:" + str(currentVoltageTarget))
