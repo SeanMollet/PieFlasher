@@ -120,7 +120,12 @@ def getconfig(key: str):
 
 class flashLogger:
     def __init__(
-        self, updateFunc: Callable, logOutput: Callable = None, eraseFailed: Callable = None, consoleOnly: bool = False
+        self,
+        updateFunc: Callable,
+        logOutput: Callable = None,
+        eraseFailed: Callable = None,
+        consoleOnly: bool = False,
+        openFileEveryTime: bool = False,
     ) -> None:
         self.logComplete = False
         self.filename = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-3] + ".log"
@@ -130,6 +135,16 @@ class flashLogger:
         self.logOutput = logOutput
         self.eraseFailedFunc = eraseFailed
         self.consoleLog = consoleOnly
+        self.openFileEveryTime = openFileEveryTime
+        if not (openFileEveryTime):
+            self.outputFile = open(self.logFilePath, "a")
+        else:
+            self.outputFile = None
+
+    def __del__(self):
+        if self.outputFile:
+            self.outputFile.close()
+        pass
 
     def getFilename(self):
         return os.path.basename(self.logFilePath)
@@ -150,8 +165,11 @@ class flashLogger:
         if self.consoleLog:
             print(data, end="")
         else:
-            with open(self.logFilePath, "a") as f:
-                f.write(data)
+            if self.openFileEveryTime:
+                with open(self.logFilePath, "a") as f:
+                    f.write(data)
+            else:
+                self.outputFile.write(data)
 
     def getData(self) -> str:
         try:

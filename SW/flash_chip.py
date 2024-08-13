@@ -32,14 +32,14 @@ class flashChip:
     CMD_Read_Identification = 0x9F  # (MID7-M0) (JDID15-JDID8) (JDID7-JDID0)        (continuous)
     CMD_Read_Data = 0x03  # A23-A16  A15-A8   A7-A0   (D7-D0) (Next byte) (continuous)
     CMD_Read_Data_4 = 0x13  # A31-A17 A23-A16  A15-A8   A7-A0   (D7-D0) (Next byte) (continuous)
-    CMD_Sector_Erase = 0x20  # A23-A16  A15-A8   A7-A0
+    CMD_Sector_Erase = 0x52  # A23-A16  A15-A8   A7-A0
     CMD_Sector_Erase_4 = 0x21  # A31-A17 A23-A16  A15-A8   A7-A0
     CMD_Chip_Erase = 0x60  # <<-- command 0xC7 can also be used <<
     CMD_Page_Program = 0x02  # A23-A16  A15-A8   A7-A0   (D7-D0) (Next byte)    (continuous)
     CMD_Page_Program_4 = 0x12  # A31-A17 A23-A16  A15-A8   A7-A0   (D7-D0) (Next byte)    (continuous)
     KnownGoodIDs = [
-        (0xEF, 0x6018, "Winbond", "W25Q128JW", 1.8, 20, 4 * 1024, 4096),
-        (0xEF, 0x7018, "Winbond", "W25Q128JV", 3.3, 20, 4 * 1024, 4096),
+        (0xEF, 0x6018, "Winbond", "W25Q128JW", 1.8, 20, 32 * 1024, 4096),
+        (0xEF, 0x7018, "Winbond", "W25Q128JV", 3.3, 20, 32 * 1024, 4096),
         (0xC2, 0x2019, "Macronix", "MX25L25645G", 3.3, 20, 4 * 1024, 4096),
     ]
 
