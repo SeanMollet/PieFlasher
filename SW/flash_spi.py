@@ -146,11 +146,11 @@ if __name__ == "__main__":
         sys.exit(-1)
     chip = flash.ChipID()
     print("Found:", chip.Maker, chip.Model)
-    print("Erasing")
-    flash.EraseChip()
+    # print("Erasing")
+    # flash.EraseChip()
     print("Flashing")
     fileData = []
-    with open("/home/sean/u-boot.img", mode="rb") as input:
+    with open("/home/sean/FullImage16m.img", mode="rb") as input:
         fileData = input.read()
 
     flash.FlashChip(fileData)
