@@ -3,7 +3,7 @@ from time import sleep
 
 
 class SPIComms:
-    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(1000 * 1000), debug=False):
+    def __init__(self, spi_device=0, spi_channel=0, max_speed_hz=(4 * 1000 * 1000), debug=False):
         self.ftdi = spi.SpiController()
         self.ftdi.configure("ftdi://ftdi:232h/" + str(spi_device + 1))
         self.spi = self.ftdi.get_port(cs=0, freq=max_speed_hz, mode=0)
