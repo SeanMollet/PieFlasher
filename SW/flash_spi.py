@@ -95,14 +95,14 @@ class SpiFlash:
                         break
             if mustFlash:
                 address = i * self.chip.EraseSize
-                self.logger.logData("Erasing block:", i)
+                self.logger.logData("Erasing block:", i, " pos:", i * self.chip.EraseSize)
                 erase = self.chipComms.sectorErase(address)
                 if not erase:
                     self.logger.logData("Error erasing block:", i)
                     i -= 1
                     failures += 1
                     continue
-                self.logger.logData("Writing block:", i)
+                self.logger.logData("Writing block:", i, " pos:", i * self.chip.EraseSize)
                 flash = self.chipComms.writeData(address, flashBlocks[i])
                 if not flash:
                     self.logger.logData("Error flashing block:", i)
@@ -128,7 +128,7 @@ class SpiFlash:
                 blockResult[i] = True
                 failures = 0
             else:
-                self.logger.logData("Skipping block:", i)
+                self.logger.logData("Skipping block:", i, " pos:", i * self.chip.EraseSize)
                 blockResult[i] = True
             self.logger.updateFlashPos(filePos)
             filePos += len(flashBlocks[i])
